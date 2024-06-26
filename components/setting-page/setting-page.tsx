@@ -22,23 +22,18 @@ import {
 } from "@/redux/apiSlice";
 import { useToast } from "../ui/use-toast";
 import { useRouter } from "next/navigation";
+import { skipToken } from "@reduxjs/toolkit/query";
 interface SettingPageProps {
-  name: string | null | undefined;
-  email: string | null | undefined;
-  id: string | null | undefined;
+  id?: string;
 }
-const SettingPage: React.FC<SettingPageProps> = ({
-  name,
-  email,
-  id,
-}: SettingPageProps) => {
+const SettingPage: React.FC<SettingPageProps> = ({ id }: SettingPageProps) => {
   const router = useRouter();
   const { toast } = useToast();
   const {
     data: userInfoData,
     isFetching,
     isLoading,
-  } = useGetUserInfoQuery(id || "");
+  } = useGetUserInfoQuery(id ?? skipToken);
   const [
     useUpdateUserInfo,
     { isError, isLoading: isUpdateLoading, error: updateError },
@@ -108,12 +103,11 @@ const SettingPage: React.FC<SettingPageProps> = ({
   if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className="p-4 w-1/2 grid gap-4 mx-auto">
+    <div className="p-4 w-full md:w-1/2 grid gap-4 mx-auto">
       <h2 className="text-center font-semibold text-2xl">ตั้งค่าบัญชี</h2>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2 grid-cols-2">
+          <div className="grid gap-2 grid-cols-1 md:grid-cols-2">
             <FormField
               control={form.control}
               name="taxId"
