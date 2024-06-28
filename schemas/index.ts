@@ -56,5 +56,13 @@ export const ServiceSchema = z.object({
   desc: z.string().min(1, {
     message: "กรุณากรอกรายละเอียดงาน",
   }),
-  note: z.string(),
+  note: z.string().optional(),
 });
+
+export const searchParamsSchema = z.object({
+  page: z.coerce.number().default(1),
+  per_page: z.coerce.number().default(2),
+  sort: z.string().optional(),
+});
+export const getSearchSchema = searchParamsSchema;
+export type GetServiceSchema = z.infer<typeof getSearchSchema>;

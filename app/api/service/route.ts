@@ -1,5 +1,6 @@
 import { currentUser } from "@/lib/auth";
 import db from "@/lib/prisma";
+import { IService } from "@/redux/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -8,87 +9,50 @@ export async function GET(req: NextRequest) {
   if (!session)
     return NextResponse.json({ message: "ไม่ได้รับอนุญาติ" }, { status: 401 });
   try {
-    const searchParams = req.nextUrl.searchParams;
-    // https://www.prisma.io/docs/orm/prisma-client/queries/pagination#cursor-based-pagination
-    // https://redux-toolkit.js.org/rtk-query/usage/pagination
-    // https://tanstack.com/table/latest/docs/framework/react/examples/pagination-controlled
-    // https://medium.com/@clee080/how-to-do-server-side-pagination-column-filtering-and-sorting-with-tanstack-react-table-and-react-7400a5604ff2
+    const searchParams = req.nextUrl.searchParams,
+      page = parseInt(searchParams.get("page") as string) || 1,
+      offset = parseInt(searchParams.get("offset") as string),
+      limit = parseInt(searchParams.get("limit") as string) || 2,
+      sort = searchParams.get("sort");
 
-    const page =
-        searchParams.get("page") != null
-          ? parseInt(searchParams.get("page") || "1")
-          : 1,
-      limit = 8,
-      lastCursor = searchParams.get("lastCursor"),
-      skip = searchParams.get("skip")
-        ? parseInt(searchParams.get("skip") as string)
-        : 1,
-      direction = searchParams.get("direction") || "f";
-    const total = await db.service.count({
-      where: {
-        userId: session.id,
-      },
-    });
-    if (direction == "f") {
-      let result2 = await db.service.findMany({
+    const [column, order] = (sort?.split(".").filter(Boolean) ?? [
+      "createdAt",
+      "desc",
+    ]) as [keyof IService | undefined, "asc" | "desc" | undefined];
+    const [services, totalService] = await db.$transaction([
+      db.service.findMany({
+        where: { userId: session.id },
+        skip: offset,
         take: limit,
-        ...(lastCursor != "" && {
-          skip,
-          cursor: {
-            id: lastCursor as string,
-          },
-        }),
-        where: {
-          userId: session.id,
-        },
-        orderBy: [
-          {
-            createdAt: "desc",
-          },
-          // ...orderBy,
-        ],
-      });
-
-      return NextResponse.json(
-        {
-          result: {
-            data: result2,
-            page,
-            limit,
-            total,
-            total_filtered: total,
-          },
-          message: "สำเร็จ",
-        },
-        { status: 200 }
-      );
-    } else {
-      let result2 = await db.service.findMany({
-        take: limit,
-        ...(skip != 0 && { skip }),
-        where: {
-          userId: session.id,
-        },
         orderBy: {
-          createdAt: "desc",
+          [column as string]: order,
         },
-      });
-      return NextResponse.json(
-        {
-          result: {
-            data: result2,
-            page,
-            limit,
-            total,
-            total_filtered: total,
-          },
-          message: "สำเร็จ",
+      }),
+      db.service.count({ where: { userId: session.id } }),
+    ]);
+    const pageCount = Math.ceil(totalService / limit);
+
+    return NextResponse.json(
+      {
+        result: {
+          data: services,
+          total: pageCount,
         },
-        { status: 200 }
-      );
-    }
+        message: "สำเร็จ",
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ message: error }, { status: 400 });
+    return NextResponse.json(
+      {
+        result: {
+          data: [],
+          total: 0,
+        },
+        message: error,
+      },
+      { status: 400 }
+    );
   }
 }
 export async function POST(req: NextRequest) {

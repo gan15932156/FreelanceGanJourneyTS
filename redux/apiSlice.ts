@@ -1,8 +1,8 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
-  IGetServiceResponse,
+  IQueryRequest,
   IService,
-  IServiceInput,
+  IServiceResponse,
   IUserInfoResponse,
   IUserInfoUpdate,
   IUserUpdateResponse,
@@ -22,44 +22,14 @@ export const apiSlice = createApi({
       },
       providesTags: ["userInfo"],
     }),
-    getServices: builder.query<IGetServiceResponse, IServiceInput>({
+    getServices: builder.query<IServiceResponse, IQueryRequest>({
       query(input) {
-        const page = input.pagination.pageIndex + 1,
-          per_page = 8,
-          lastCursor = input.lastCursor,
-          oldPageIndex = input.oldPageIndex;
-
-        if (lastCursor != "") {
-          if (oldPageIndex != null) {
-            if (page > oldPageIndex + 1) {
-              // next page
-              const skipPage: number =
-                (page - (oldPageIndex + 1)) * per_page - 1;
-              return {
-                url: `/service?lastCursor=${lastCursor}&page=${page}&skip=${skipPage}&direction=${"f"}`,
-                method: "GET",
-              };
-            } else {
-              // previous page
-              const skipPage: number = page * per_page - per_page;
-              console.log(skipPage);
-              return {
-                url: `/service?lastCursor=${lastCursor}&page=${page}&skip=${skipPage}&direction=${"b"}`,
-                method: "GET",
-              };
-            }
-          } else {
-            return {
-              url: `/service?lastCursor=${lastCursor}&page=${page}&skip=${1}&direction=${"f"}`,
-              method: "GET",
-            };
-          }
-        } else {
-          return {
-            url: `/service?lastCursor=${lastCursor}&page=${page}&skip=${1}&direction=${"f"}`,
-            method: "GET",
-          };
-        }
+        const { page, per_page, sort } = input;
+        const offset = (page - 1) * per_page;
+        return {
+          url: `/service?page=${page}&offset=${offset}&limit=${per_page}&sort=${sort}`,
+          method: "GET",
+        };
       },
       providesTags: ["services"],
     }),
@@ -79,6 +49,12 @@ export const apiSlice = createApi({
       },
       invalidatesTags: ["services"],
     }),
+    updateService: builder.mutation<IUserUpdateResponse, IService>({
+      query({ id, ...rest }) {
+        return { url: `/service/${id}`, method: "PUT", body: rest };
+      },
+      invalidatesTags: ["services"],
+    }),
   }),
 });
 export const {
@@ -86,6 +62,7 @@ export const {
   useGetServicesQuery,
   useUpdateUserInfoMutation,
   useCreateServiceMutation,
+  useUpdateServiceMutation,
 } = apiSlice;
 
 // best pratice api route
