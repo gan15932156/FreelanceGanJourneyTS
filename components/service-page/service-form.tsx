@@ -18,13 +18,15 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useCreateServiceMutation } from "@/redux/apiSlice";
+import {
+  useCreateServiceMutation,
+  useUpdateServiceMutation,
+} from "@/redux/apiSlice";
 import { useToast } from "../ui/use-toast";
 import { cn } from "@/lib/utils";
 interface ServiceFormProps {
   mode: "edit" | "add";
   data?: IService;
-  alertText?: string;
   id?: string;
   isModalForm: boolean;
 }
@@ -37,7 +39,6 @@ const initialData: IService = {
 const ServiceForm: React.FC<ServiceFormProps> = ({
   mode,
   data,
-  alertText,
   id,
   isModalForm,
 }: ServiceFormProps) => {
@@ -50,18 +51,32 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   const { toast } = useToast();
   const [useCreateService, { isError, isLoading, error }] =
     useCreateServiceMutation();
+  const [useUpdateService, { isLoading: updateLoading }] =
+    useUpdateServiceMutation();
   const [isPending, startTranstion] = useTransition();
   const onSubmit: SubmitHandler<z.infer<typeof ServiceSchema>> = async (
     data
   ) => {
-    if (mode == "edit" && alertText) {
+    if (mode == "edit") {
       // ##note please check data is diffence from remote data
       if (
         confirm(
           "การเปลี่ยนแปลงข้อมูลบริการหลังจากบันทึกข้อมูลนี้ ระบบจะสร้างข้อมูลบริการเพิ่มแทนการเปลี่ยนแปลงข้อมูลเดิม"
         )
       ) {
-        console.log("send data", data);
+        startTranstion(() => {
+          useUpdateService({ ...data, id }).then((data) => {
+            if (data.data?.result) {
+              toast({ title: data.data.message || "สำเร็จ" });
+              router.back();
+            } else {
+              toast({
+                variant: "destructive",
+                title: data.data?.message || "ไม่สามารถบันทึกข้อมูลได้",
+              });
+            }
+          });
+        });
       } else {
         console.log("back to edit");
       }

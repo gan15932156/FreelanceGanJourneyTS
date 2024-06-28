@@ -19,25 +19,25 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
     <Pagination>
       <PaginationContent>
         {table.getCanPreviousPage() && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationPrevious onClick={() => table.previousPage()} />
           </PaginationItem>
         )}
 
         {table.getState().pagination.pageIndex + 1 >= 4 && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationLink onClick={() => table.setPageIndex(0)}>
               1
             </PaginationLink>
           </PaginationItem>
         )}
         {table.getState().pagination.pageIndex + 1 >= 5 && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationEllipsis />
           </PaginationItem>
         )}
         {table.getState().pagination.pageIndex + 1 - 2 > 0 && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationLink
               onClick={() =>
                 table.setPageIndex(table.getState().pagination.pageIndex - 2)
@@ -48,7 +48,7 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
           </PaginationItem>
         )}
         {table.getState().pagination.pageIndex + 1 - 1 > 0 && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationLink
               onClick={() =>
                 table.setPageIndex(table.getState().pagination.pageIndex - 1)
@@ -58,14 +58,14 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
             </PaginationLink>
           </PaginationItem>
         )}
-        <PaginationItem className="bg-violet-100 rounded-md">
+        <PaginationItem className="bg-slate-100 rounded-md">
           <PaginationLink>
             {table.getState().pagination.pageIndex + 1}
           </PaginationLink>
         </PaginationItem>
         {table.getState().pagination.pageIndex + 1 + 1 <=
           table?.getPageCount() && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationLink
               onClick={() =>
                 table.setPageIndex(table.getState().pagination.pageIndex + 1)
@@ -77,7 +77,7 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
         )}
         {table.getState().pagination.pageIndex + 1 + 2 <=
           table?.getPageCount() && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className="rounded-md hover:cursor-pointer">
             <PaginationLink
               onClick={() =>
                 table.setPageIndex(table.getState().pagination.pageIndex + 2)
@@ -89,14 +89,14 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
         )}
         {table.getState().pagination.pageIndex + 1 + 2 <
           table?.getPageCount() - 1 && (
-          <PaginationItem className="bg-violet-300 rounded-md">
+          <PaginationItem className="rounded-md">
             <PaginationEllipsis />
           </PaginationItem>
         )}
         {table.getState().pagination.pageIndex + 1 + 2 <
           table?.getPageCount() && (
           <>
-            <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+            <PaginationItem className="rounded-md hover:cursor-pointer">
               <PaginationLink
                 onClick={() => table.setPageIndex(table?.getPageCount())}
               >
@@ -106,7 +106,7 @@ export default function TablePagination<TData>({ table }: Props<TData>) {
           </>
         )}
         {table.getCanNextPage() && (
-          <PaginationItem className="bg-violet-300 rounded-md hover:cursor-pointer">
+          <PaginationItem className=" rounded-md hover:cursor-pointer">
             <PaginationNext onClick={() => table.nextPage()} />
           </PaginationItem>
         )}

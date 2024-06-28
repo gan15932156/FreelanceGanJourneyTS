@@ -1,7 +1,5 @@
 "use client";
-import { ColumnDef, SortingState } from "@tanstack/react-table";
 import { File, ListFilter, PlusCircle } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,76 +8,33 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { searchParamsSchema } from "@/schemas";
 import { useGetServicesQuery } from "@/redux/apiSlice";
-import { skipToken } from "@reduxjs/toolkit/query";
-import { useEffect, useState } from "react";
-import { IService, PaginationInput } from "@/redux/types";
+import { useMemo } from "react";
+import { getServiceColumns } from "@/data/table-columns/service-column";
+import { useDataTable } from "@/hook/use-data-table";
 import ManageTable from "../manage/manage-table";
-interface ManageServicePageProps {
-  id?: string;
-}
-const serviceColumns: ColumnDef<IService>[] = [
-  {
-    header: "ชื่อบริการ/งาน",
-    accessorKey: "name",
-  },
-  {
-    header: "ราคา/หน่วย",
-    accessorKey: "price",
-  },
-];
-const ManageService: React.FC<ManageServicePageProps> = ({
-  id,
-}: ManageServicePageProps) => {
-  // sorting state of the table
-  // const [sorting, setSorting] = useState<SortingState>([]);
-  const [paginationInput, setPaginationInput] = useState<
-    PaginationInput<IService>
-  >({
-    pagination: {
-      pageIndex: 0,
-      pageSize: 8,
-    },
-    cursor: {
-      id: "",
-      price: 0,
-      desc: "",
-      name: "",
-    },
-    oldPageIndex: null,
-  });
-  const {
-    data: serviceData,
-    isLoading,
-    isError,
-  } = useGetServicesQuery(
-    {
-      pagination: paginationInput.pagination,
-      lastCursor: paginationInput.cursor?.id || "",
-      oldPageIndex: paginationInput.oldPageIndex,
-    } ?? skipToken
-  );
+
+const ManageService = () => {
   const router = useRouter();
-  // useEffect(() => {
-  //   console.log(sorting);
-  // }, [sorting]);
-  if (id == "") return null;
-  if (isLoading) return <div>Loading</div>;
+  const searchParams = useSearchParams();
+  const search = searchParamsSchema.parse(Object.fromEntries(searchParams));
+  const { data, isLoading, isError } = useGetServicesQuery(search);
+  const columns = useMemo(() => getServiceColumns(), []);
+  const { table } = useDataTable({
+    data: data?.result.data || [],
+    columns,
+    pageCount: data?.result.total,
+    defaultPerPage: 2,
+    defaultSort: "createdAt.desc",
+  });
+  if (isLoading) return <div>Loading...</div>;
   return !isLoading && !isError ? (
     <div className="flex min-h-screen w-full mx-auto flex-col mt-4">
       <div className="flex flex-col">
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <div className="flex items-center justify-center md:flex-row flex-col gap-4 flex-wrap">
-            {/* <div className="relative  md:w-[300px] w-full mx-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search..."
-                className="w-full rounded-lg bg-background pl-8 "
-              />
-            </div> */}
             <div className="ml-auto flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -122,12 +77,7 @@ const ManageService: React.FC<ManageServicePageProps> = ({
             </CardHeader>
             <CardContent>
               {/* table here!!! */}
-              <ManageTable
-                columns={serviceColumns}
-                paginatedTableData={serviceData?.result}
-                pagination={paginationInput.pagination}
-                setPaginationInput={setPaginationInput}
-              />
+              <ManageTable table={table} />
             </CardContent>
           </Card>
         </main>

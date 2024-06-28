@@ -12,11 +12,6 @@ interface Props<TData> {
   table: TableType<TData>;
 }
 export default function TableComponent<TData>({ table }: Props<TData>) {
-  const sortToggler = (header: Header<TData, unknown>) => {
-    if (header.column.getCanSort()) {
-      header.column.toggleSorting(undefined, true);
-    }
-  };
   return (
     <div>
       <Table>
@@ -26,20 +21,10 @@ export default function TableComponent<TData>({ table }: Props<TData>) {
               {header.headers.map((header) => (
                 <TableHead key={header.id}>
                   {header.isPlaceholder ? null : (
-                    <div
-                      onClick={() => sortToggler(header)}
-                      className="hover:cursor-pointer"
-                    >
+                    <div className="hover:cursor-pointer">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
-                      )}
-                      {(header.column.getIsSorted() === "asc" ||
-                        header.column.getIsSorted() === "desc") && (
-                        <span>
-                          {header.column.getIsSorted() === "asc" && "↑"}
-                          {header.column.getIsSorted() === "desc" && "↓"}
-                        </span>
                       )}
                     </div>
                   )}

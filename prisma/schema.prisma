@@ -22,6 +22,7 @@ model User {
   accounts      Account[]
   accountInfo   AccountInfo?
   services      Service[]
+  clients      Client[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -67,7 +68,29 @@ model Service{
   name          String
   price         Float
   desc          String          @db.Text
-  note          String?          @db.Text
+  note          String?         @db.Text
+  user          User            @relation(fields: [userId],references: [id])
+  userId        String          
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Client{
+  id            String          @id @default(cuid())
+  name          String 
+  address       String
+  province      String
+  district      String
+  subDistrict   String
+  zipCode       String?
+  tel           String
+  email         String          @unique
+  taxId         String 
+  contactName   String?
+  contactTel    String?
+  contactEmail  String?
+  isActive      Boolean         @default(true)
+  isLP          Boolean         @default(true)
   user          User            @relation(fields: [userId],references: [id])
   userId        String          
   createdAt     DateTime        @default(now())
