@@ -95,13 +95,17 @@ export default function MobileNav() {
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <Link href="/settings">Settings</Link>
+            <Link href="/settings">ข้อมูลผู้ใช้</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Link href="/userPayment">ข้อมูลการเงิน</Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
             <form action={logout}>
-              <Button type="submit">Sign out</Button>
+              <Button type="submit" size={"sm"}>
+                Sign out
+              </Button>
             </form>
           </DropdownMenuItem>
         </DropdownMenuContent>

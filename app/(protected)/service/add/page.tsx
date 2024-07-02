@@ -1,11 +1,8 @@
-import { auth } from "@/auth";
 import ServiceForm from "@/components/service-page/service-form";
-
-export default async function Page() {
-  const session = await auth();
+export default function Page() {
   return (
     <>
-      <ServiceForm mode="add" id={session?.user.id} isModalForm={false} />
+      <ServiceForm mode="add" isModalForm={false} />
     </>
   );
 }

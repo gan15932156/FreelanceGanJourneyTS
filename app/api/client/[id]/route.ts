@@ -1,7 +1,8 @@
 import { currentUser } from "@/lib/auth";
 import db from "@/lib/prisma";
-import { ServiceSchema } from "@/schemas";
+import { ClientSchemaWithoutExtras } from "@/schemas";
 import { NextRequest, NextResponse } from "next/server";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -22,7 +23,7 @@ export async function GET(
         { status: 401 }
       );
     }
-    const service = await db.service.findUnique({ where: { id } });
+    const service = await db.client.findUnique({ where: { id } });
     return NextResponse.json(
       {
         result: service,
@@ -55,23 +56,51 @@ export async function PUT(
       );
     }
     const body: unknown = await req.json();
-    const parsedBody = ServiceSchema.safeParse(body);
+    const parsedBody = ClientSchemaWithoutExtras.safeParse(body);
     if (!parsedBody.success) {
       return NextResponse.json(
         { result: {}, message: "ไม่สามารถบันทึกข้อมูลได้" },
         { status: 422 }
       );
     }
-    const { name, price, desc, note } = parsedBody.data;
-    const service = await db.service.update({
+    const {
+      name,
+      tel,
+      address,
+      taxId,
+      province,
+      district,
+      subDistrict,
+      zipCode,
+      email,
+      contactName,
+      contactTel,
+      contactEmail,
+      isLP,
+    } = parsedBody.data;
+    const client = await db.client.update({
       where: {
         id,
       },
-      data: { name, price, desc, note },
+      data: {
+        name,
+        tel,
+        address,
+        taxId,
+        province,
+        district,
+        subDistrict,
+        zipCode,
+        email,
+        contactName,
+        contactTel,
+        contactEmail,
+        isLP,
+      },
     });
     return NextResponse.json(
       {
-        result: service,
+        result: client,
         message: "สำเร็จ",
       },
       { status: 200 }

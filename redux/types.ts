@@ -1,3 +1,6 @@
+import { TUserPaymentSchema } from "./../schemas/index";
+import { TClientSchema } from "@/schemas";
+
 export type IUserInfo = {
   name: string;
   email: string;
@@ -22,6 +25,10 @@ export interface IUserUpdateResponse {
   result: Object;
   message: string;
 }
+export interface IGetResponse<TData> {
+  result: TData;
+  message: string;
+}
 export interface IService {
   id?: string;
   name: string;
@@ -32,7 +39,9 @@ export interface IService {
   createdAt?: Date;
   updatedAt?: Date;
 }
-
+export interface IGetRequest {
+  id: string;
+}
 export interface SearchParams {
   [key: string]: string | string[] | undefined;
 }
@@ -47,4 +56,18 @@ export interface IQueryRequest {
   page: number;
   per_page: number;
   sort?: string;
+}
+export interface IClientsResponse {
+  message: string;
+  result: {
+    data: TClientSchema[];
+    total: number;
+  };
+}
+
+export interface IUserPaymentResponse {
+  message: string;
+  result: {
+    data: TUserPaymentSchema;
+  };
 }

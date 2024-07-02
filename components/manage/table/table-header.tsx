@@ -24,7 +24,7 @@ export default function TableHeader<TData, TValue>({
   title,
   className,
 }: Props<TData, TValue>) {
-  if (!column.getCanSort() && !column.getCanHide()) {
+  if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
   return (

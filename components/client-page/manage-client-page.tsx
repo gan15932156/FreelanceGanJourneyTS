@@ -1,42 +1,43 @@
 "use client";
+
 import { File, ListFilter, PlusCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useRouter, useSearchParams } from "next/navigation";
 import { searchParamsSchema } from "@/schemas";
-import { useGetServicesQuery } from "@/redux/apiSlice";
-import { useMemo } from "react";
-import { getServiceColumns } from "@/data/table-columns/service-column";
+import { useGetClientsQuery } from "@/redux/apiSlice";
+import { useEffect, useMemo } from "react";
+import { getClientColumns } from "@/data/table-columns/client-column";
 import { useDataTable } from "@/hook/use-data-table";
 import ManageTable from "../manage/manage-table";
 
-const ManageService = () => {
+export default function ManageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const search = searchParamsSchema.parse(Object.fromEntries(searchParams));
-  const { data, isLoading, isError } = useGetServicesQuery(search);
-  const columns = useMemo(() => getServiceColumns(), []);
+  const { data, isLoading, isError } = useGetClientsQuery(search);
+  const columns = useMemo(() => getClientColumns(), []);
   const { table } = useDataTable({
     data: data?.result.data || [],
     columns,
     pageCount: data?.result.total,
-    defaultPerPage: 2,
+    defaultPerPage: 10,
     defaultSort: "createdAt.desc",
   });
   if (isLoading) return <div>Loading...</div>;
   return !isLoading && !isError ? (
-    <div className="flex  w-full mx-auto flex-col mt-4">
+    <div className="flex w-full mx-auto flex-col mt-4">
       <div className="flex flex-col">
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <div className="flex items-center justify-center md:flex-row flex-col gap-4 flex-wrap">
             <div className="ml-auto flex items-center gap-2">
-              <DropdownMenu>
+              {/* <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 gap-1">
                     <ListFilter className="h-3.5 w-3.5" />
@@ -58,22 +59,22 @@ const ManageService = () => {
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   Export
                 </span>
-              </Button>
+              </Button> */}
               <Button
                 size="sm"
                 className="h-8 gap-1"
-                onClick={() => router.push("/service/add")}
+                onClick={() => router.push("/client/add")}
               >
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  เพิ่มข้อมูลบริการ
+                  เพิ่มข้อมูลลูกค้า
                 </span>
               </Button>
             </div>
           </div>
           <Card x-chunk="dashboard-06-chunk-0">
             <CardHeader>
-              <CardTitle>ข้อมูลบริการ</CardTitle>
+              <CardTitle>ข้อมูลลูกค้า</CardTitle>
             </CardHeader>
             <CardContent>
               {/* table here!!! */}
@@ -86,6 +87,4 @@ const ManageService = () => {
   ) : (
     <div>Something went wrong!!!</div>
   );
-};
-
-export default ManageService;
+}

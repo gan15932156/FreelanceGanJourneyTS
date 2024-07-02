@@ -22,7 +22,7 @@ export function useDataTable<TData, TValue>({
   data,
   columns,
   pageCount,
-  defaultPerPage = 2,
+  defaultPerPage = 10,
   defaultSort,
 }: UseDataTableProps<TData, TValue>) {
   const router = useRouter();
@@ -97,8 +97,8 @@ export function useDataTable<TData, TValue>({
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    // getPaginationRowModel: getPaginationRowModel(),
+    // getSortedRowModel: getSortedRowModel(),
     manualPagination: true,
     manualSorting: true,
   });

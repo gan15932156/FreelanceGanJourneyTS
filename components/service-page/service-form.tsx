@@ -3,7 +3,7 @@
 import { IService } from "@/redux/types";
 import { ServiceSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import * as z from "zod";
 import {
@@ -20,15 +20,17 @@ import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import {
   useCreateServiceMutation,
+  useGetServiceQuery,
   useUpdateServiceMutation,
 } from "@/redux/apiSlice";
 import { useToast } from "../ui/use-toast";
 import { cn } from "@/lib/utils";
+import { skipToken } from "@reduxjs/toolkit/query";
+
 interface ServiceFormProps {
   mode: "edit" | "add";
-  data?: IService;
-  id?: string;
   isModalForm: boolean;
+  id?: string;
 }
 const initialData: IService = {
   name: "",
@@ -38,19 +40,18 @@ const initialData: IService = {
 };
 const ServiceForm: React.FC<ServiceFormProps> = ({
   mode,
-  data,
-  id,
   isModalForm,
+  id,
 }: ServiceFormProps) => {
+  const { data, isLoading: dataLoading } = useGetServiceQuery(id ?? skipToken);
   const router = useRouter();
   const form = useForm<z.infer<typeof ServiceSchema>>({
     mode: "onBlur",
     resolver: zodResolver(ServiceSchema),
-    defaultValues: data && mode == "edit" ? data : initialData,
+    defaultValues: initialData,
   });
   const { toast } = useToast();
-  const [useCreateService, { isError, isLoading, error }] =
-    useCreateServiceMutation();
+  const [useCreateService, { isLoading }] = useCreateServiceMutation();
   const [useUpdateService, { isLoading: updateLoading }] =
     useUpdateServiceMutation();
   const [isPending, startTranstion] = useTransition();
@@ -58,34 +59,22 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     data
   ) => {
     if (mode == "edit") {
-      // ##note please check data is diffence from remote data
-      if (
-        confirm(
-          "การเปลี่ยนแปลงข้อมูลบริการหลังจากบันทึกข้อมูลนี้ ระบบจะสร้างข้อมูลบริการเพิ่มแทนการเปลี่ยนแปลงข้อมูลเดิม"
-        )
-      ) {
-        startTranstion(() => {
-          useUpdateService({ ...data, id }).then((data) => {
-            if (data.data?.result) {
-              toast({ title: data.data.message || "สำเร็จ" });
-              router.back();
-            } else {
-              toast({
-                variant: "destructive",
-                title: data.data?.message || "ไม่สามารถบันทึกข้อมูลได้",
-              });
-            }
-          });
+      startTranstion(() => {
+        useUpdateService({ ...data, id }).then((data) => {
+          if (data.data?.result) {
+            toast({ title: data.data.message || "สำเร็จ" });
+            router.back();
+          } else {
+            toast({
+              variant: "destructive",
+              title: data.data?.message || "ไม่สามารถบันทึกข้อมูลได้",
+            });
+          }
         });
-      } else {
-        console.log("back to edit");
-      }
+      });
     } else {
       startTranstion(() => {
-        useCreateService({
-          ...data,
-          userId: id,
-        }).then((data) => {
+        useCreateService(data).then((data) => {
           if (data.data?.result) {
             form.reset(initialData);
             toast({
@@ -102,14 +91,25 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       });
     }
   };
+  useEffect(() => {
+    if (mode == "edit" && !dataLoading && data) {
+      form.reset(data.result);
+    }
+  }, [data]);
+  if (mode == "edit" && dataLoading) return <div>Loading...</div>;
+  if (mode == "edit" && !dataLoading && !data?.result)
+    return <div>ไม่พบข้อมูล</div>;
   return (
-    // isModalForm
     <div
       className={cn(
         `p-4 w-full grid gap-4 mx-auto`,
         !isModalForm && "md:w-3/4"
       )}
     >
+      <h1 className="text-rose-500">
+        have bug data from server component is not change, you must fetch data
+        on client component or search best solution
+      </h1>
       <h2 className="text-center font-semibold text-2xl">ฟอร์มข้อมูลบริการ</h2>
       <Form {...form}>
         <form
@@ -125,7 +125,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   <FormLabel>ชื่อบริการ/งาน</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={isPending || isLoading}
+                      disabled={isPending || isLoading || updateLoading}
                       {...field}
                       placeholder="บริการ"
                       type="text"
@@ -143,7 +143,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   <FormLabel>ราคา(หน่วยเงินบาท)</FormLabel>
                   <FormControl>
                     <Input
-                      disabled={isPending || isLoading}
+                      disabled={isPending || isLoading || updateLoading}
                       {...field}
                       placeholder="ราคา"
                       type="number"
@@ -163,7 +163,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   <FormLabel>รายละเอียดงาน</FormLabel>
                   <FormControl>
                     <Textarea
-                      disabled={isPending || isLoading}
+                      disabled={isPending || isLoading || updateLoading}
                       {...field}
                       placeholder="รายละเอียด1,รายละเอียด2"
                     />
@@ -183,7 +183,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                   <FormLabel>หมายเหตุ</FormLabel>
                   <FormControl>
                     <Textarea
-                      disabled={isPending || isLoading}
+                      disabled={isPending || isLoading || updateLoading}
                       {...field}
                       placeholder="หมายเหตุ1,หมายเหตุ2"
                     />
@@ -199,13 +199,16 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
           <div className="flex flex-row mt-6 justify-end gap-4">
             <Button
               onClick={() => router.back()}
-              disabled={isPending || isLoading}
+              disabled={isPending || isLoading || updateLoading}
               variant={"outline"}
               type="button"
             >
               ย้อนหลับ
             </Button>
-            <Button disabled={isPending || isLoading} type="submit">
+            <Button
+              disabled={isPending || isLoading || updateLoading}
+              type="submit"
+            >
               บันทึกข้อมูล
             </Button>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { UserInfoSchema } from "@/schemas";
-import { Control } from "react-hook-form";
+import { Control, FieldValues, Path } from "react-hook-form";
 import * as z from "zod";
 import { Input } from "../ui/input";
 import { resolveResultByField } from "@/lib/th-address-utls";
@@ -69,18 +69,18 @@ function reducer(state: any, action: Action) {
 const SEARCH_ACTION = "SEARCH_ACTION";
 const FORM_CHANGE_ACTION = "FORM_CHANGE_ACTION";
 const SELECT_ADDRESS = "SELECT_ADDRESS";
-interface Props {
-  control: Control<z.infer<typeof UserInfoSchema>>;
+interface Props<TSchema extends FieldValues> {
+  control: Control<TSchema>;
   isPending: boolean;
   isLoading: boolean;
   onSetFormValue(name: string, value: unknown, config?: Object): void;
 }
-export default function ThAddressAutoComplete({
+export default function ThAddressAutoComplete<TSchema extends FieldValues>({
   control,
   isPending,
   isLoading,
   onSetFormValue,
-}: Props) {
+}: Props<TSchema>) {
   const [anchorEl, setAnchorEl] = useState<string>("");
   const [state, dispatch] = useReducer(reducer, initialState);
   const handlerClick = (obj: AddressObject) => {
@@ -117,7 +117,7 @@ export default function ThAddressAutoComplete({
       <div className="grid">
         <FormField
           control={control}
-          name="address"
+          name={"address" as Path<TSchema>}
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>ที่อยู่</FormLabel>
@@ -137,7 +137,7 @@ export default function ThAddressAutoComplete({
       <div className="flex flex-row gap-2">
         <FormField
           control={control}
-          name="subDistrict"
+          name={"subDistrict" as Path<TSchema>}
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>ตำบล</FormLabel>
@@ -165,7 +165,7 @@ export default function ThAddressAutoComplete({
         />
         <FormField
           control={control}
-          name="district"
+          name={"district" as Path<TSchema>}
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>อำเภอ</FormLabel>
@@ -195,7 +195,7 @@ export default function ThAddressAutoComplete({
       <div className="flex flex-row gap-2">
         <FormField
           control={control}
-          name="province"
+          name={"province" as Path<TSchema>}
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>จังหวัด</FormLabel>
@@ -223,7 +223,7 @@ export default function ThAddressAutoComplete({
         />
         <FormField
           control={control}
-          name="zipCode"
+          name={"zipCode" as Path<TSchema>}
           render={({ field }) => (
             <FormItem className="w-full">
               <FormLabel>รหัสไปรษณีย์</FormLabel>
