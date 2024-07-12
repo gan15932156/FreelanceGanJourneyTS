@@ -106,10 +106,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         !isModalForm && "md:w-3/4"
       )}
     >
-      <h1 className="text-rose-500">
-        have bug data from server component is not change, you must fetch data
-        on client component or search best solution
-      </h1>
       <h2 className="text-center font-semibold text-2xl">ฟอร์มข้อมูลบริการ</h2>
       <Form {...form}>
         <form

@@ -11,6 +11,17 @@ enum UserRole {
   ADMIN
   USER
 }
+
+// QS1 = รอยืนยันใบเสนอราคา
+// QS2 = ยืนยันใบเสนอราคาแล้ว
+// QS3 = สำเร็จ
+// QS4 = ยกเลิก
+enum StatusStr {
+  QS1
+  QS2
+  QS3
+  QS4
+}
 model User {
   id            String          @id @default(cuid())
   name          String?
@@ -19,11 +30,12 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole @default(USER)
-  accounts      Account[]
   accountInfo   AccountInfo?
   paymentInfo   UserPayment?
+  accounts      Account[]
   services      Service[]
   clients      Client[]
+  quotations   Quotation[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -40,12 +52,9 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
- 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
- 
   @@id([provider, providerAccountId])
 }
 
@@ -105,4 +114,35 @@ model Client{
   userId        String          
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
+  quotations   Quotation[]
+}
+
+model Quotation {
+  id            String          @id @default(cuid())
+  qId           String          @unique
+  signDate      DateTime?
+  isUseVAT      Boolean         @default(false)
+  taxAmount     Int?
+  note          String?
+  status        StatusStr       @default(QS1)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  user          User            @relation(fields: [userId],references: [id])
+  userId        String
+  client        Client          @relation(fields: [clientId],references: [id])
+  clientId      String
+  quotationServices             QuotationService[]
+}
+
+model QuotationService {
+  id            String          @id @default(cuid())
+  name          String
+  price         Float
+  desc          String          @db.Text
+  note          String?         @db.Text
+  qty           Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  quotation     Quotation       @relation(fields: [qId],references: [id])
+  qId           String
 }

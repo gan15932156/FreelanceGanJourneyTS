@@ -22,13 +22,13 @@ export const UserInfoSchema = z.object({
   name: z.string().min(1, {
     message: "กรุณากรอกชื่อ-นามสกุล",
   }),
-  tel: z.string().min(9, {
+  tel: z.string().length(10, {
     message: "กรุณากรอกเบอร์โทรศัพท์",
   }),
   address: z.string().min(2, {
     message: "กรุณากรอกที่อยู่",
   }),
-  taxId: z.string().min(13, {
+  taxId: z.string().length(13, {
     message: "กรุณากรอกเลขบัตรประชาชน",
   }),
   province: z.string().min(1, {
@@ -70,13 +70,13 @@ export type GetServiceSchema = z.infer<typeof getSearchSchema>;
 export const ClientSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, { message: "กรุณากรอกชื่อลูกค้า" }),
-  tel: z.string().min(9, {
+  tel: z.string().length(10, {
     message: "กรุณากรอกเบอร์โทรศัพท์",
   }),
   address: z.string().min(2, {
     message: "กรุณากรอกที่อยู่",
   }),
-  taxId: z.string().min(13, {
+  taxId: z.string().length(13, {
     message: "กรุณากรอกเลขประจําตัวผู้เสียภาษี",
   }),
   province: z.string().min(1, {
@@ -99,7 +99,7 @@ export const ClientSchema = z.object({
     .or(z.literal("")),
   contactTel: z
     .string()
-    .min(9, { message: "กรุณากรอกเบอร์ผู้ติดต่อ" })
+    .length(10, { message: "กรุณากรอกเบอร์ผู้ติดต่อ" })
     .optional()
     .or(z.literal("")),
   contactEmail: z
@@ -146,3 +146,52 @@ export const UserPaymentSchemaWithoutExtras = UserPaymentSchema.omit({
 export type TUserPaymentSchemaWithoutExtras = z.infer<
   typeof UserPaymentSchemaWithoutExtras
 >;
+
+export const QuotationServiceSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(2, {
+    message: "กรุณากรอกชื่อบริการ/งาน",
+  }),
+  price: z.coerce
+    .number()
+    .positive({ message: "กรุณากรอกจำนวนเต็มบวกเท่านั้น" })
+    .min(1, {
+      message: "กรุณากรอกราคา",
+    }),
+  desc: z.string().min(1, {
+    message: "กรุณากรอกรายละเอียดงาน",
+  }),
+  note: z.string().optional(),
+  qty: z.coerce.number().positive().min(1, { message: "กรุณากรอกจำนวนบริการ" }),
+  qId: z.string().optional(),
+});
+export const QuotationServiceSchemaWithMode = QuotationServiceSchema.extend({
+  isEdit: z.boolean().default(false),
+});
+export const QuotationSchema = z.object({
+  id: z.string().optional(),
+  qId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
+  signDate: z.date().optional(),
+  isUseVAT: z.boolean().default(false),
+  taxAmount: z.coerce.number().default(0),
+  note: z.string().optional(),
+  createdAt: z.date().optional(),
+  services: z
+    .array(QuotationServiceSchemaWithMode)
+    .min(1, { message: "กรุณาเลือกบริการ" }),
+});
+
+export const QuotationSchemaWithoutEdit = z.object({
+  id: z.string().optional(),
+  qId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
+  clientId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
+  signDate: z.date().optional(),
+  isUseVAT: z.boolean().default(false),
+  taxAmount: z.coerce.number().default(0),
+  note: z.string().optional(),
+  createdAt: z.date().optional(),
+  services: z
+    .array(QuotationServiceSchemaWithMode)
+    .min(1, { message: "กรุณาเลือกบริการ" }),
+});
+export type TQuotationSchema = z.infer<typeof QuotationSchemaWithoutEdit>;

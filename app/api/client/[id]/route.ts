@@ -10,7 +10,7 @@ export async function GET(
   const session = await currentUser();
   if (!session?.id)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {
@@ -32,7 +32,7 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json({ message: error }, { status: 400 });
+    return NextResponse.json({ result: {}, message: error }, { status: 400 });
   }
 }
 export async function PUT(
@@ -42,7 +42,7 @@ export async function PUT(
   const session = await currentUser();
   if (!session?.id)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {
@@ -106,6 +106,6 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error) {
-    return NextResponse.json({ message: error }, { status: 400 });
+    return NextResponse.json({ result: {}, message: error }, { status: 400 });
   }
 }

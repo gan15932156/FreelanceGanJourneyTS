@@ -12,7 +12,9 @@ export default function Modal({ children }: { children: React.ReactNode }) {
   return (
     <Dialog defaultOpen={true} open={true} onOpenChange={closeModal}>
       <DialogOverlay>
-        <DialogContent>{children}</DialogContent>
+        <DialogContent className="overflow-y-scroll max-h-screen">
+          {children}
+        </DialogContent>
       </DialogOverlay>
     </Dialog>
   );

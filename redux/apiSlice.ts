@@ -14,13 +14,14 @@ import {
 import {
   TClientSchema,
   TClientSchemaWithoutExtras,
+  TQuotationSchema,
   TUserPaymentSchemaWithoutExtras,
 } from "@/schemas";
 const BASEURL = "/api";
 export const apiSlice = createApi({
   reducerPath: "apiSlice",
   baseQuery: fetchBaseQuery({ baseUrl: BASEURL }),
-  tagTypes: ["userInfo", "services", "clients", "userPayment"],
+  tagTypes: ["userInfo", "services", "clients", "userPayment", "quotations"],
   endpoints: (builder) => ({
     getUserInfo: builder.query<IUserInfoResponse, string>({
       query(id) {
@@ -30,6 +31,23 @@ export const apiSlice = createApi({
         };
       },
       providesTags: ["userInfo"],
+    }),
+    getUserInfoWithoutId: builder.query<IGetResponse<IUserInfoResponse>, void>({
+      query() {
+        return {
+          url: `/user/userInfo`,
+          method: "GET",
+        };
+      },
+      providesTags: ["userInfo"],
+    }),
+    getGeneratedQid: builder.query<IGetResponse<string>, void>({
+      query() {
+        return {
+          url: `/quotation/getId`,
+          method: "GET",
+        };
+      },
     }),
     getUserPaymentInfo: builder.query<IUserPaymentResponse, void>({
       query() {
@@ -49,14 +67,32 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
-      providesTags: (result, error, arg) => {
-        return [
-          {
-            type: "services",
-            id: arg.page + "_" + arg.per_page + "_" + arg.sort,
-          },
-        ];
+      providesTags: (result) =>
+        result?.result
+          ? [
+              ...result.result.data.map(({ id }) => ({
+                type: "services" as const,
+                id,
+              })),
+            ]
+          : [{ type: "services", id: "PARTIAL-LIST" }],
+    }),
+    getAllServiceById: builder.query<IGetResponse<IService[]>, void>({
+      query() {
+        return {
+          url: `/service/getAllById`,
+          method: "GET",
+        };
       },
+      providesTags: (result) =>
+        result?.result
+          ? [
+              ...result.result.map(({ id }) => ({
+                type: "services" as const,
+                id,
+              })),
+            ]
+          : [{ type: "services", id: "LIST" }],
     }),
     getService: builder.query<IGetResponse<IService>, string>({
       query(input) {
@@ -65,18 +101,15 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
-      providesTags: (result, error, arg) => {
-        if (result?.result) {
-          return [
-            {
-              type: "services",
-              id: result?.result.id,
-            },
-          ];
-        } else {
-          return ["services"];
-        }
-      },
+      providesTags: (result) =>
+        result?.result
+          ? [
+              {
+                type: "services" as const,
+                id: result.result.id,
+              },
+            ]
+          : [{ type: "services", id: "PARTIAL-LIST" }],
     }),
     getClients: builder.query<IClientsResponse, IQueryRequest>({
       query(input) {
@@ -87,14 +120,32 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
-      providesTags: (result, error, arg) => {
-        return [
-          {
-            type: "clients",
-            id: arg.page + "_" + arg.per_page + "_" + arg.sort,
-          },
-        ];
+      providesTags: (result) =>
+        result?.result
+          ? [
+              ...result.result.data.map(({ id }) => ({
+                type: "clients" as const,
+                id,
+              })),
+            ]
+          : [{ type: "clients", id: "PARTIAL-LIST" }],
+    }),
+    getAllClientById: builder.query<IGetResponse<TClientSchema[]>, void>({
+      query() {
+        return {
+          url: `/client/getAllById`,
+          method: "GET",
+        };
       },
+      providesTags: (result) =>
+        result?.result
+          ? [
+              ...result.result.map(({ id }) => ({
+                type: "clients" as const,
+                id,
+              })),
+            ]
+          : [{ type: "clients", id: "LIST" }],
     }),
     getClient: builder.query<IGetResponse<TClientSchema>, string>({
       query(input) {
@@ -103,18 +154,15 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
-      providesTags: (result, error, arg) => {
-        if (result?.result) {
-          return [
-            {
-              type: "clients",
-              id: result?.result.id,
-            },
-          ];
-        } else {
-          return ["clients"];
-        }
-      },
+      providesTags: (result) =>
+        result?.result
+          ? [
+              {
+                type: "clients" as const,
+                id: result.result.id,
+              },
+            ]
+          : [{ type: "clients", id: "PARTIAL-LIST" }],
     }),
     updateUserInfo: builder.mutation<IUserUpdateResponse, IUserInfoUpdate>({
       query(body) {
@@ -154,6 +202,12 @@ export const apiSlice = createApi({
       },
       invalidatesTags: ["clients"],
     }),
+    createQuotation: builder.mutation<IUserUpdateResponse, TQuotationSchema>({
+      query(body) {
+        return { url: `/quotation`, method: "POST", body: body };
+      },
+      invalidatesTags: ["quotations"],
+    }),
     updateService: builder.mutation<IUserUpdateResponse, IService>({
       query({ id, ...rest }) {
         return { url: `/service/${id}`, method: "PUT", body: rest };
@@ -173,15 +227,20 @@ export const apiSlice = createApi({
 });
 export const {
   useGetUserInfoQuery,
+  useGetUserInfoWithoutIdQuery,
+  useGetGeneratedQidQuery,
   useGetUserPaymentInfoQuery,
   useGetServicesQuery,
+  useGetAllServiceByIdQuery,
   useGetServiceQuery,
   useGetClientsQuery,
+  useGetAllClientByIdQuery,
   useGetClientQuery,
   useUpdateUserInfoMutation,
   useUpdateUserPaymentInfoMutation,
   useCreateClientMutation,
   useCreateServiceMutation,
+  useCreateQuotationMutation,
   useUpdateServiceMutation,
   useUpdateClientMutation,
 } = apiSlice;

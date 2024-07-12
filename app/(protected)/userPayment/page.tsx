@@ -82,7 +82,7 @@ export default function Page() {
                   <FormLabel>รายละเอียดข้อมูลการเงิน</FormLabel>
                   <FormControl>
                     <Textarea
-                      disabled={isPending}
+                      disabled={isPending || updateUserPaymentLoading}
                       {...field}
                       placeholder="รายละเอียด"
                     />
@@ -95,13 +95,16 @@ export default function Page() {
           <div className="flex flex-row mt-6 justify-end gap-4">
             <Button
               onClick={() => router.back()}
-              disabled={isPending}
+              disabled={isPending || updateUserPaymentLoading}
               variant={"outline"}
               type="button"
             >
               ย้อนหลับ
             </Button>
-            <Button disabled={isPending} type="submit">
+            <Button
+              disabled={isPending || updateUserPaymentLoading}
+              type="submit"
+            >
               บันทึกข้อมูล
             </Button>
           </div>

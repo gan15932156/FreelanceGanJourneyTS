@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
           id: body.id,
         },
         data: {
+          name: body.name || "",
           accountInfo: {
             upsert: {
               create: {

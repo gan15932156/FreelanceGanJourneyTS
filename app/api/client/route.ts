@@ -1,8 +1,7 @@
 import { ClientSchemaWithoutExtras } from "./../../../schemas/index";
 import { currentUser } from "@/lib/auth";
 import db from "@/lib/prisma";
-import { ClientSchema, TClientSchema } from "@/schemas";
-import { Prisma } from "@prisma/client";
+import { TClientSchema } from "@/schemas";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -10,7 +9,7 @@ export async function GET(req: NextRequest) {
   if (!session)
     return NextResponse.json({
       result: { data: [], total: 0 },
-      message: "ไม่ได้รับอนุญาติ",
+      message: "ไม่ได้รับอนุญาต",
     });
   try {
     const searchParams = req.nextUrl.searchParams,
@@ -61,7 +60,7 @@ export async function POST(req: NextRequest) {
   const session = await currentUser();
   if (!session?.id)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {

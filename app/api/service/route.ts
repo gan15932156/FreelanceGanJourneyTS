@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const session = await currentUser();
   if (!session)
     return NextResponse.json(
-      { result: { data: [], total: 0 }, message: "ไม่ได้รับอนุญาติ" },
+      { result: { data: [], total: 0 }, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   const session = await currentUser();
   if (!session)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {

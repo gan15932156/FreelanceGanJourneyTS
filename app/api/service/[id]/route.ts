@@ -9,7 +9,7 @@ export async function GET(
   const session = await currentUser();
   if (!session?.id)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {
@@ -41,7 +41,7 @@ export async function PUT(
   const session = await currentUser();
   if (!session?.id)
     return NextResponse.json(
-      { result: {}, message: "ไม่ได้รับอนุญาติ" },
+      { result: {}, message: "ไม่ได้รับอนุญาต" },
       { status: 401 }
     );
   try {

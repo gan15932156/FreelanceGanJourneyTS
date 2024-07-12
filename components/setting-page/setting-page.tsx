@@ -29,15 +29,11 @@ interface SettingPageProps {
 const SettingPage: React.FC<SettingPageProps> = ({ id }: SettingPageProps) => {
   const router = useRouter();
   const { toast } = useToast();
-  const {
-    data: userInfoData,
-    isFetching,
-    isLoading,
-  } = useGetUserInfoQuery(id ?? skipToken);
-  const [
-    useUpdateUserInfo,
-    { isError, isLoading: isUpdateLoading, error: updateError },
-  ] = useUpdateUserInfoMutation();
+  const { data: userInfoData, isLoading } = useGetUserInfoQuery(
+    id ?? skipToken
+  );
+  const [useUpdateUserInfo, { isLoading: isUpdateLoading }] =
+    useUpdateUserInfoMutation();
   const form = useForm<z.infer<typeof UserInfoSchema>>({
     resolver: zodResolver(UserInfoSchema),
     defaultValues: {
@@ -52,9 +48,6 @@ const SettingPage: React.FC<SettingPageProps> = ({ id }: SettingPageProps) => {
     },
   });
   const [isPending, startTranstion] = useTransition();
-  // const watchAllFields = form.watch();
-  // console.log(watchAllFields);
-  // https://codevoweb.com/build-crud-app-with-reactjs-and-redux-toolkit/
   const onSubmit: SubmitHandler<z.infer<typeof UserInfoSchema>> = async (
     data
   ) => {

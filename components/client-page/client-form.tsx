@@ -1,10 +1,6 @@
 "use client";
 import * as z from "zod";
-import {
-  ClientSchema,
-  ClientSchemaWithoutExtras,
-  TClientSchema,
-} from "@/schemas";
+import { ClientSchemaWithoutExtras, TClientSchema } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
