@@ -18,6 +18,7 @@ import {
 import { formatPhoneNumber } from "@/lib/utils2";
 
 interface Props {
+  clientId?: string;
   mode: "edit" | "add";
   grid_gap: string;
   setIssetData: React.Dispatch<React.SetStateAction<IssetRequireData>>;
@@ -32,6 +33,7 @@ interface MockClient {
   contactInfo: string;
 }
 const ClientInfoSelectionbox: React.FC<Props> = ({
+  clientId,
   mode,
   grid_gap,
   setIssetData,
@@ -77,29 +79,32 @@ const ClientInfoSelectionbox: React.FC<Props> = ({
     }
   };
   useEffect(() => {
-    if (mode == "add" && clientData?.result && clientData.result.length > 0) {
+    if (clientData?.result && clientData.result.length > 0) {
       setIssetData((prev) => ({
         ...prev,
         client: true,
       }));
     }
+    if (
+      mode == "edit" &&
+      clientId != undefined &&
+      clientId != "" &&
+      clientData?.result &&
+      clientData.result.length > 0
+    ) {
+      handleOnChange(clientId);
+    }
   }, [clientData]);
-  if (mode == "add" && clientLoading) return <div>Loading...</div>;
-  if (!clientData?.result)
-    return (
-      <div className="col-span-4">
-        <p>ไม่พบข้อมูล ไม่สามารถสร้างใบเสนอราคาได้</p>
-      </div>
-    );
+  if (clientLoading) return <div>Loading...</div>;
   return mode == "add" ? (
-    clientData.result.length > 0 && !clientLoading && !clientError ? (
+    !clientLoading && !clientError ? (
       <>
         <div className="col-span-6 ">
           <Badge variant={"secondary"} className="max-w-fit">
             ข้อมูลลูกค้า
           </Badge>
         </div>
-        {clientData.result.length > 0 && (
+        {clientData?.result && clientData.result.length > 0 && (
           <div className="col-span-6 my-4">
             <Select value={mockClientData?.id} onValueChange={handleOnChange}>
               <SelectTrigger className="w-1/4">
@@ -171,7 +176,73 @@ const ClientInfoSelectionbox: React.FC<Props> = ({
       </>
     )
   ) : (
-    <div>let edit</div>
+    <>
+      <div className="col-span-6 ">
+        <Badge variant={"secondary"} className="max-w-fit">
+          ข้อมูลลูกค้า
+        </Badge>
+      </div>
+      {clientData?.result && clientData.result.length > 0 && (
+        <div className="col-span-6 my-4">
+          <Select value={mockClientData?.id} onValueChange={handleOnChange}>
+            <SelectTrigger className="w-1/4">
+              <SelectValue placeholder="เลือกลูกค้า" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>ลูกค้า</SelectLabel>
+                {clientData.result.map((client: TClientSchema) => (
+                  <SelectItem key={client.id} value={client.id as string}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      <QuotationInfoItem
+        colSpan={2}
+        headingText="ชื่อลูกค้า"
+        content={mockClientData?.name || ""}
+        gridGap={grid_gap}
+      />
+      <QuotationInfoItem
+        colSpan={4}
+        headingText="เลขผู้เสียภาษี"
+        content={mockClientData?.taxId || ""}
+        gridGap={grid_gap}
+      />
+      <QuotationInfoItem
+        colSpan={6}
+        colSpanContent={"col-[2_/_span_3]"}
+        headingText="ที่อยู่"
+        content={mockClientData?.address || ""}
+        gridGap={grid_gap}
+      />
+      <QuotationInfoItem
+        colSpan={2}
+        headingText="เบอร์ติดต่อ"
+        content={
+          mockClientData?.tel != undefined
+            ? formatPhoneNumber(mockClientData?.tel)
+            : ""
+        }
+        gridGap={grid_gap}
+      />
+      <QuotationInfoItem
+        colSpan={4}
+        headingText="อีเมล์"
+        content={mockClientData?.email || ""}
+        gridGap={grid_gap}
+      />
+      <QuotationInfoItem
+        colSpan={2}
+        headingText="ผู้ติดต่อ"
+        content={mockClientData?.contactInfo || ""}
+        gridGap={grid_gap}
+      />
+    </>
   );
 };
 

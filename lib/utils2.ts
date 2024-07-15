@@ -1,3 +1,7 @@
+import { parseISO, format } from "date-fns";
+import { th } from "date-fns/locale";
+import _ from "lodash";
+type AnyObject = Record<string, any>;
 export function formatPhoneNumber(phoneNumber: string): string {
   if (phoneNumber.length !== 10) {
     return "";
@@ -35,3 +39,33 @@ export function getThaiCurrentFormat(amount: number): string {
     currency: "THB",
   }).format(amount);
 }
+
+export const formatThaiDate = (isoDate: string): string => {
+  const date = parseISO(isoDate);
+  // Adjust the year to the Buddhist calendar
+  const buddhistYear = date.getFullYear() + 543;
+  const formattedDate = format(date, `dd MMMM ${buddhistYear}`, { locale: th });
+  return formattedDate;
+};
+const findDifferences = <T extends AnyObject>(obj1: T, obj2: T): Partial<T> => {
+  return _.transform(
+    obj1,
+    (result, value, key) => {
+      if (!_.isEqual(value, obj2[key])) {
+        (result as AnyObject)[key] = obj2[key];
+      }
+    },
+    {} as Partial<T>
+  );
+};
+
+export const updateDataIfDifferent = <T extends AnyObject>(
+  original: T,
+  updated: T
+): T => {
+  const differences = findDifferences(original, updated);
+  if (!_.isEmpty(differences)) {
+    return { ...original, ...differences };
+  }
+  return original;
+};

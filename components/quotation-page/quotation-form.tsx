@@ -1,6 +1,6 @@
 "use client";
-
-import { QuotationSchema } from "@/schemas";
+import _ from "lodash";
+import { QuotationSchema, QuotationServiceSchemaWithMode } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -15,11 +15,14 @@ import { Button } from "../ui/button";
 import {
   useCreateQuotationMutation,
   useGetGeneratedQidQuery,
+  useGetQuotationQuery,
+  useUpdateQuotationMutation,
 } from "@/redux/apiSlice";
 import ClientInfoSelectionbox from "./clientInfo-selectionbox";
 import ServiceQuotationTable from "./services-quotation-table";
 import { Badge } from "../ui/badge";
 import QuotationDesc from "./quotation-desc";
+import { skipToken } from "@reduxjs/toolkit/query";
 interface QuotationFormProps {
   mode: "edit" | "add";
   id?: string;
@@ -43,13 +46,19 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   mode,
   id,
 }: QuotationFormProps) => {
+  const { data: quotationData, isLoading: quotationLoading } =
+    useGetQuotationQuery(id ?? skipToken);
   const {
     data: qidData,
     isLoading: qidLoading,
     isError: qidError,
-  } = useGetGeneratedQidQuery();
+  } = useGetGeneratedQidQuery(undefined, {
+    skip: mode == "edit",
+  });
   const [uesCreateQuotation, { isLoading: createQuotationLoading }] =
     useCreateQuotationMutation();
+  const [useUPdateQuotation, { isLoading: updateLoading }] =
+    useUpdateQuotationMutation();
   const router = useRouter();
   const form = useForm<z.infer<typeof QuotationSchema>>({
     mode: "onBlur",
@@ -112,6 +121,94 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
         });
       } else {
         // edit
+        let updateData = {};
+        if (!_.isEqual(quotationData?.result.isUseVAT, data.isUseVAT)) {
+          updateData = {
+            ...updateData,
+            isUseVAT: data.isUseVAT,
+          };
+        }
+        if (!_.isEqual(quotationData?.result.note || undefined, data.note)) {
+          updateData = {
+            ...updateData,
+            note: data.note,
+          };
+        }
+        if (!_.isEqual(quotationData?.result.taxAmount, data.taxAmount)) {
+          updateData = {
+            ...updateData,
+            taxAmount: data.taxAmount,
+          };
+        }
+        if (!_.isEqual(quotationData?.result.clientId, issetData.clientId)) {
+          updateData = {
+            ...updateData,
+            clientId: issetData.clientId,
+          };
+        }
+        let updateService: z.infer<typeof QuotationServiceSchemaWithMode>[] =
+          [];
+        let deleteService: string[] = [];
+        data.services
+          .filter((f) => f.isEdit == true)
+          .forEach((service) => {
+            const foundData = quotationData?.result.quotationServices.find(
+              (e) => e.id == service.id
+            );
+            if (foundData && foundData.id != undefined) {
+              const { createdAt, updatedAt, ...original } = foundData;
+              const {
+                createdAt: createdAt2,
+                updatedAt: updatedAt2,
+                isEdit,
+                ...compareData
+              } = service;
+              if (!_.isEqual(original, compareData)) {
+                updateService.push({ ...compareData, isEdit: true });
+              }
+            }
+          });
+        quotationData?.result.quotationServices.forEach((service) => {
+          const found = data.services.find((f) => f.id == service.id);
+          if (found && found.isEdit == true) {
+          } else {
+            if (service.id != undefined) {
+              deleteService.push(service.id);
+            }
+          }
+        });
+        updateData = {
+          ...updateData,
+          ...(updateService.length > 0 && {
+            services: updateService,
+          }),
+          qId: data.qId,
+        };
+        const body = {
+          update: updateData,
+          add: data.services.filter((f) => f.isEdit == false),
+          delete: deleteService,
+          id: id || "",
+        };
+        if (
+          !_.isEmpty(body.update) ||
+          body.add.length > 0 ||
+          body.delete.length > 0
+        ) {
+          startTransition(() => {
+            useUPdateQuotation(body).then((data) => {
+              if (data.data?.result) {
+                toast({ title: data.data.message || "สำเร็จ" });
+                router.back();
+              } else {
+                toast({
+                  variant: "destructive",
+                  title: data.data?.message || "ไม่สามารถบันทึกข้อมูลได้",
+                });
+              }
+            });
+          });
+        }
       }
     } else {
       toast({
@@ -124,6 +221,45 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
       form.reset({ qId: qidData?.result, services: [] });
     }
   }, [qidData]);
+  useEffect(() => {
+    if (
+      mode == "edit" &&
+      !quotationLoading &&
+      quotationData?.result &&
+      quotationData?.result.id != undefined
+    ) {
+      setIssetData((prev) => ({
+        ...prev,
+        clientId: quotationData.result.clientId,
+        payment: true,
+        userInfo: true,
+      }));
+      const qid = quotationData.result.qId;
+      const newQid =
+        qid.substring(0, qid.length - 1) +
+        (Number(qid.substring(qid.length - 1)) + 1);
+      const resetService: z.infer<typeof QuotationServiceSchemaWithMode>[] =
+        quotationData.result.quotationServices.map((serivce) => ({
+          ...serivce,
+          isEdit: true,
+        }));
+      const resetData = {
+        qId: newQid,
+        isUseVAT: quotationData.result.isUseVAT,
+        taxAmount: quotationData.result.taxAmount,
+        services: resetService,
+      };
+      form.reset(resetData);
+    }
+  }, [quotationData]);
+  if (mode == "edit" && quotationLoading) return <div>Loading...</div>;
+  if (
+    mode == "edit" &&
+    !quotationLoading &&
+    quotationData?.result &&
+    quotationData?.result.id == undefined
+  )
+    return <div>ไม่พบข้อมูล</div>;
   return (
     <div className="w-[90%] grid gap-4 mx-auto">
       <h2 className="text-center font-semibold text-2xl">ใบเสนอราคา</h2>
@@ -139,14 +275,26 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             mode={mode}
             grid_gap={GRID_GAP}
             control={form.control}
-            issetData={issetData}
             setIssetData={setIssetData}
+            editData={
+              mode == "edit" && quotationData?.result?.user != undefined
+                ? {
+                    ...quotationData?.result?.user,
+                    createdAt: quotationData.result.createdAt,
+                  }
+                : undefined
+            }
           />
           <Separator className="col-span-6 my-4" />
           <ClientInfoSelectionbox
             mode={mode}
             grid_gap={GRID_GAP}
             setIssetData={setIssetData}
+            clientId={
+              mode == "edit" && quotationData?.result?.clientId != undefined
+                ? quotationData?.result?.clientId
+                : undefined
+            }
           />
           <Separator className="col-span-6 my-4" />
           <ServiceQuotationTable
@@ -156,22 +304,30 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             issetData={issetData}
             setIssetData={setIssetData}
           />
-          {form.formState.errors?.services?.message && (
+          {(form.formState.errors?.services?.message ||
+            form.formState.errors?.services?.root?.message) && (
             <div className="col-span-6 ">
-              <Badge className="animate-bounce" variant="destructive">
-                {form.formState.errors?.services?.message}
+              <Badge className="animate-bounce max-w-fit" variant="destructive">
+                {form.formState.errors?.services?.message ??
+                  form.formState.errors?.services?.root?.message}
               </Badge>
             </div>
           )}
           <Separator className="col-span-6 my-4" />
           <QuotationDesc
+            editData={
+              mode == "edit" &&
+              quotationData?.result?.user.paymentInfo != undefined
+                ? quotationData?.result?.user.paymentInfo.desc
+                : undefined
+            }
             mode={mode}
             setIssetData={setIssetData}
-            grid_gap={GRID_GAP}
             control={form.control}
           />
           <div className="col-span-4 flex flex-row gap-2 mt-4">
             <Button
+              disabled={createQuotationLoading || isPending || updateLoading}
               className="ml-auto"
               onClick={() => router.back()}
               variant={"outline"}
@@ -179,7 +335,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             >
               ย้อนหลับ
             </Button>
-            <Button type="submit">บันทึกข้อมูล</Button>
+            <Button
+              disabled={createQuotationLoading || isPending || updateLoading}
+              type="submit"
+            >
+              บันทึกข้อมูล
+            </Button>
           </div>
         </form>
       </Form>

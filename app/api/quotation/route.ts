@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         },
       },
       include: {
-        quotationServices: true, // Include all posts in the returned object
+        quotationServices: true,
       },
     });
     return NextResponse.json(

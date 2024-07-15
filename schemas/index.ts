@@ -42,7 +42,7 @@ export const UserInfoSchema = z.object({
   }),
   zipCode: z.string(),
 });
-
+export type TUSerInfoSchema = z.infer<typeof UserInfoSchema>;
 export const ServiceSchema = z.object({
   name: z.string().min(2, {
     message: "กรุณากรอกชื่อบริการ/งาน",
@@ -164,7 +164,10 @@ export const QuotationServiceSchema = z.object({
   note: z.string().optional(),
   qty: z.coerce.number().positive().min(1, { message: "กรุณากรอกจำนวนบริการ" }),
   qId: z.string().optional(),
+  createdAt: z.date({ coerce: true }).optional(),
+  updatedAt: z.date({ coerce: true }).optional(),
 });
+export type TQuotationServiceSchema = z.infer<typeof QuotationServiceSchema>;
 export const QuotationServiceSchemaWithMode = QuotationServiceSchema.extend({
   isEdit: z.boolean().default(false),
 });
@@ -180,7 +183,9 @@ export const QuotationSchema = z.object({
     .array(QuotationServiceSchemaWithMode)
     .min(1, { message: "กรุณาเลือกบริการ" }),
 });
-
+export const QuotationSchemaWithClientId = QuotationSchema.extend({
+  clientId: z.string(),
+});
 export const QuotationSchemaWithoutEdit = z.object({
   id: z.string().optional(),
   qId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
@@ -191,7 +196,14 @@ export const QuotationSchemaWithoutEdit = z.object({
   note: z.string().optional(),
   createdAt: z.date().optional(),
   services: z
-    .array(QuotationServiceSchemaWithMode)
+    .array(QuotationServiceSchema)
     .min(1, { message: "กรุณาเลือกบริการ" }),
 });
 export type TQuotationSchema = z.infer<typeof QuotationSchemaWithoutEdit>;
+export const QuotationRequestSchema = z.object({
+  id: z.string().optional(),
+  add: z.array(QuotationServiceSchemaWithMode).optional(),
+  update: QuotationSchemaWithClientId.partial(),
+  delete: z.array(z.string()).optional(),
+});
+export type TQuotationRequestSchema = z.infer<typeof QuotationRequestSchema>;

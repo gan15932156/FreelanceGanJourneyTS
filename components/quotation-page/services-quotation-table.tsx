@@ -195,151 +195,143 @@ const ServiceQuotationTable: React.FC<Props> = ({
     }
   };
   useEffect(() => {
-    if (mode == "add" && serviceData?.result && serviceData.result.length > 0) {
+    if (serviceData?.result && serviceData.result.length > 0) {
       setIssetData((prev) => ({
         ...prev,
         services: true,
       }));
     }
   }, [serviceData]);
-  if (mode == "add" && serviceLoading) return <div>Loading...</div>;
-  if (!serviceData?.result)
-    return (
-      <div className="col-span-4">
-        <p>ไม่พบข้อมูล ไม่สามารถสร้างใบเสนอราคาได้</p>
+  if (serviceLoading) return <div>Loading...</div>;
+  return !serviceLoading && !serviceError ? (
+    <>
+      <div className="col-span-6 ">
+        <Badge variant={"secondary"} className="max-w-fit">
+          ข้อมูลบริการ
+        </Badge>
       </div>
-    );
-  return mode == "add" ? (
-    serviceData.result.length > 0 && !serviceLoading && !serviceError ? (
-      <>
-        <div className="col-span-6 ">
-          <Badge variant={"secondary"} className="max-w-fit">
-            ข้อมูลบริการ
-          </Badge>
-        </div>
-        <div className="col-span-6">
-          <Table className="border">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60%] ">บริการ</TableHead>
-                <TableHead className="min-w-4 text-right">หน่วย</TableHead>
-                <TableHead className="min-w-8 text-right">
-                  ราคาต่อหน่วย
-                </TableHead>
-                <TableHead className="min-w-8 text-right">
-                  จำนวนเงิน(บาท)
-                </TableHead>
-                <TableHead className="text-center">action</TableHead>
+      <div className="col-span-6">
+        <Table className="border">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[60%] ">บริการ</TableHead>
+              <TableHead className="min-w-4 text-right">หน่วย</TableHead>
+              <TableHead className="min-w-8 text-right">ราคาต่อหน่วย</TableHead>
+              <TableHead className="min-w-8 text-right">
+                จำนวนเงิน(บาท)
+              </TableHead>
+              <TableHead className="text-center">action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {fields.map((field, index) => (
+              <TableRow key={field.id}>
+                <TableCell>
+                  <div className="grid grid-cols-[100px_1fr] gap-2">
+                    <FormField
+                      control={control}
+                      name={`services.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                          <FormLabel>บริการ</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="บริการ"
+                              type="text"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name={`services.${index}.desc`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                          <FormLabel>รายละเอียดงาน</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              placeholder="รายละเอียดงาน"
+                              type="text"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={control}
+                      name={`services.${index}.note`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                          <FormLabel>หมายเหตุ</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              {...field}
+                              placeholder="หมายเหตุ1,หมายเหตุ2"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <FormField
+                    control={control}
+                    name={`services.${index}.qty`}
+                    render={({ field }) => (
+                      <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                        <FormControl>
+                          <Input
+                            min={1}
+                            className="text-right"
+                            {...field}
+                            placeholder="จำนวนบริการ"
+                            type="number"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TableCell>
+                <TableCell className="text-right">
+                  <FormField
+                    control={control}
+                    name={`services.${index}.price`}
+                    render={({ field }) => (
+                      <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                        <FormControl>
+                          <Input
+                            min={1}
+                            className="text-right"
+                            {...field}
+                            placeholder="ราคา"
+                            type="number"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </TableCell>
+                <TableCell className="text-right">
+                  <SubTotal control={control} index={index} />
+                </TableCell>
+                <TableCell className="text-center">
+                  <X
+                    className="cursor-pointer mx-auto"
+                    onClick={() => remove(index)}
+                  />
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {fields.map((field, index) => (
-                <TableRow key={field.id}>
-                  <TableCell>
-                    <div className="grid grid-cols-[100px_1fr] gap-2">
-                      <FormField
-                        control={control}
-                        name={`services.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
-                            <FormLabel>บริการ</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="บริการ"
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={control}
-                        name={`services.${index}.desc`}
-                        render={({ field }) => (
-                          <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
-                            <FormLabel>รายละเอียดงาน</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder="รายละเอียดงาน"
-                                type="text"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={control}
-                        name={`services.${index}.note`}
-                        render={({ field }) => (
-                          <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
-                            <FormLabel>หมายเหตุ</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="หมายเหตุ1,หมายเหตุ2"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <FormField
-                      control={control}
-                      name={`services.${index}.qty`}
-                      render={({ field }) => (
-                        <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
-                          <FormControl>
-                            <Input
-                              min={1}
-                              className="text-right"
-                              {...field}
-                              placeholder="จำนวนบริการ"
-                              type="number"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <FormField
-                      control={control}
-                      name={`services.${index}.price`}
-                      render={({ field }) => (
-                        <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
-                          <FormControl>
-                            <Input
-                              min={1}
-                              className="text-right"
-                              {...field}
-                              placeholder="ราคา"
-                              type="number"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <SubTotal control={control} index={index} />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <X
-                      className="cursor-pointer mx-auto"
-                      onClick={() => remove(index)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+            ))}
+            {serviceData?.result && (
               <TableRow>
                 <TableCell colSpan={1}>
                   <Select onValueChange={handleOnChange}>
@@ -367,25 +359,23 @@ const ServiceQuotationTable: React.FC<Props> = ({
                   </Select>
                 </TableCell>
               </TableRow>
-            </TableBody>
-            <TableFooter>
-              <TotalFooter control={control} />
-            </TableFooter>
-          </Table>
-        </div>
-      </>
-    ) : (
-      <>
-        <div className="col-span-6 mb-4">
-          <Badge variant={"secondary"} className="max-w-fit">
-            ข้อมูลบริการ
-          </Badge>
-        </div>
-        <p>ไม่พบข้อมูล</p>
-      </>
-    )
+            )}
+          </TableBody>
+          <TableFooter>
+            <TotalFooter control={control} />
+          </TableFooter>
+        </Table>
+      </div>
+    </>
   ) : (
-    <div>Let edit</div>
+    <>
+      <div className="col-span-6 mb-4">
+        <Badge variant={"secondary"} className="max-w-fit">
+          ข้อมูลบริการ
+        </Badge>
+      </div>
+      <p>ไม่พบข้อมูล</p>
+    </>
   );
 };
 

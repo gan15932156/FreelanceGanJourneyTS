@@ -10,10 +10,12 @@ import {
   IUserInfoUpdate,
   IUserPaymentResponse,
   IUserUpdateResponse,
+  TQuotationFullRelated,
 } from "./types";
 import {
   TClientSchema,
   TClientSchemaWithoutExtras,
+  TQuotationRequestSchema,
   TQuotationSchema,
   TUserPaymentSchemaWithoutExtras,
 } from "@/schemas";
@@ -164,6 +166,14 @@ export const apiSlice = createApi({
             ]
           : [{ type: "clients", id: "PARTIAL-LIST" }],
     }),
+    getQuotation: builder.query<IGetResponse<TQuotationFullRelated>, string>({
+      query(input) {
+        return {
+          url: `/quotation/${input}`,
+          method: "GET",
+        };
+      },
+    }),
     updateUserInfo: builder.mutation<IUserUpdateResponse, IUserInfoUpdate>({
       query(body) {
         return {
@@ -223,6 +233,14 @@ export const apiSlice = createApi({
       },
       invalidatesTags: ["clients"],
     }),
+    updateQuotation: builder.mutation<
+      IUserUpdateResponse,
+      TQuotationRequestSchema
+    >({
+      query({ id, ...rest }) {
+        return { url: `/quotation/${id}`, method: "PUT", body: rest };
+      },
+    }),
   }),
 });
 export const {
@@ -236,6 +254,7 @@ export const {
   useGetClientsQuery,
   useGetAllClientByIdQuery,
   useGetClientQuery,
+  useGetQuotationQuery,
   useUpdateUserInfoMutation,
   useUpdateUserPaymentInfoMutation,
   useCreateClientMutation,
@@ -243,6 +262,7 @@ export const {
   useCreateQuotationMutation,
   useUpdateServiceMutation,
   useUpdateClientMutation,
+  useUpdateQuotationMutation,
 } = apiSlice;
 
 // best pratice api route
