@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   IClientsResponse,
-  IGetRequest,
   IGetResponse,
   IQueryRequest,
+  IQuotationResponse,
   IService,
   IServiceResponse,
   IUserInfoResponse,
@@ -11,6 +11,7 @@ import {
   IUserPaymentResponse,
   IUserUpdateResponse,
   TQuotationFullRelated,
+  TQuotationUpdateStatusSchema,
 } from "./types";
 import {
   TClientSchema,
@@ -76,6 +77,7 @@ export const apiSlice = createApi({
                 type: "services" as const,
                 id,
               })),
+              { type: "services", id: "PARTIAL-LIST" },
             ]
           : [{ type: "services", id: "PARTIAL-LIST" }],
     }),
@@ -93,6 +95,7 @@ export const apiSlice = createApi({
                 type: "services" as const,
                 id,
               })),
+              { type: "services", id: "LIST" },
             ]
           : [{ type: "services", id: "LIST" }],
     }),
@@ -129,6 +132,7 @@ export const apiSlice = createApi({
                 type: "clients" as const,
                 id,
               })),
+              { type: "clients", id: "PARTIAL-LIST" },
             ]
           : [{ type: "clients", id: "PARTIAL-LIST" }],
     }),
@@ -146,6 +150,7 @@ export const apiSlice = createApi({
                 type: "clients" as const,
                 id,
               })),
+              { type: "clients", id: "LIST" },
             ]
           : [{ type: "clients", id: "LIST" }],
     }),
@@ -173,6 +178,27 @@ export const apiSlice = createApi({
           method: "GET",
         };
       },
+      providesTags: [{ type: "quotations", id: "PARTIAL-LIST" }],
+    }),
+    getQuotations: builder.query<IQuotationResponse, IQueryRequest>({
+      query(input) {
+        const { page, per_page, sort } = input;
+        const offset = (page - 1) * per_page;
+        return {
+          url: `/quotation?offset=${offset}&limit=${per_page}&sort=${sort}`,
+          method: "GET",
+        };
+      },
+      providesTags: (result) =>
+        result?.result
+          ? [
+              ...result.result.data.map(({ id }) => ({
+                type: "quotations" as const,
+                id,
+              })),
+              { type: "quotations", id: "PARTIAL-LIST" },
+            ]
+          : [{ type: "quotations", id: "PARTIAL-LIST" }],
     }),
     updateUserInfo: builder.mutation<IUserUpdateResponse, IUserInfoUpdate>({
       query(body) {
@@ -240,6 +266,20 @@ export const apiSlice = createApi({
       query({ id, ...rest }) {
         return { url: `/quotation/${id}`, method: "PUT", body: rest };
       },
+      invalidatesTags: ["quotations"],
+    }),
+    updateQuotationStatus: builder.mutation<
+      IUserUpdateResponse,
+      TQuotationUpdateStatusSchema
+    >({
+      query({ id, ...rest }) {
+        return {
+          url: `/quotation/${id}/updateStatus`,
+          method: "PUT",
+          body: rest,
+        };
+      },
+      invalidatesTags: ["quotations"],
     }),
   }),
 });
@@ -255,6 +295,7 @@ export const {
   useGetAllClientByIdQuery,
   useGetClientQuery,
   useGetQuotationQuery,
+  useGetQuotationsQuery,
   useUpdateUserInfoMutation,
   useUpdateUserPaymentInfoMutation,
   useCreateClientMutation,
@@ -263,6 +304,7 @@ export const {
   useUpdateServiceMutation,
   useUpdateClientMutation,
   useUpdateQuotationMutation,
+  useUpdateQuotationStatusMutation,
 } = apiSlice;
 
 // best pratice api route

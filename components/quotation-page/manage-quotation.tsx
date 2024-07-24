@@ -1,12 +1,30 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { PlusCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { searchParamsSchema } from "@/schemas";
+import { useGetQuotationsQuery } from "@/redux/apiSlice";
+import { useMemo } from "react";
+import { getQuotationColumns } from "@/data/table-columns/quotation-column";
+import { useDataTable } from "@/hook/use-data-table";
+import ManageTable from "../manage/manage-table";
 
 export default function ManageQuotation() {
   const router = useRouter();
-  return (
+  const searchParams = useSearchParams();
+  const search = searchParamsSchema.parse(Object.fromEntries(searchParams));
+  const { data, isLoading, isError } = useGetQuotationsQuery(search);
+  const columns = useMemo(() => getQuotationColumns(), []);
+  const { table } = useDataTable({
+    data: data?.result.data || [],
+    columns,
+    pageCount: data?.result.total,
+    defaultPerPage: 2,
+    defaultSort: "createdAt.desc",
+  });
+  if (isLoading) return <div>Loading...</div>;
+  return !isLoading && !isError ? (
     <div className="flex  w-full mx-auto flex-col mt-4">
       <div className="flex flex-col">
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -30,11 +48,13 @@ export default function ManageQuotation() {
             </CardHeader>
             <CardContent>
               {/* table here!!! */}
-              {/* <ManageTable table={table} /> */}
+              <ManageTable table={table} />
             </CardContent>
           </Card>
         </main>
       </div>
     </div>
+  ) : (
+    <div>Something went wrong!!!</div>
   );
 }

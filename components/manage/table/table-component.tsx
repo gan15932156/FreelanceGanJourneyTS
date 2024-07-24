@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { flexRender, Table as TableType, Header } from "@tanstack/react-table";
+import { flexRender, Table as TableType } from "@tanstack/react-table";
 interface Props<TData> {
   table: TableType<TData>;
 }

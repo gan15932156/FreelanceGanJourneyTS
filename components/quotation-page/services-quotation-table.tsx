@@ -8,7 +8,6 @@ import { Badge } from "../ui/badge";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -27,7 +26,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useGetAllServiceByIdQuery } from "@/redux/apiSlice";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { IService } from "@/redux/types";
 import {
   FormControl,
@@ -40,10 +39,7 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
 interface Props {
-  mode: "add" | "edit";
-  grid_gap: string;
   control: Control<z.infer<typeof QuotationSchema>>;
-  issetData: IssetRequireData;
   setIssetData: React.Dispatch<React.SetStateAction<IssetRequireData>>;
 }
 interface SubtotalProps {
@@ -172,10 +168,7 @@ const SubTotal: React.FC<SubtotalProps> = ({
   return <div>{subtotal}</div>;
 };
 const ServiceQuotationTable: React.FC<Props> = ({
-  mode,
-  grid_gap,
   control,
-  issetData,
   setIssetData,
 }: Props) => {
   const {

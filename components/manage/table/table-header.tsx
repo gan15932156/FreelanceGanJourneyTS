@@ -3,18 +3,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { type Column } from "@tanstack/react-table";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  EyeOff,
-  SendHorizontal,
-} from "lucide-react";
-import { FaCaretLeft } from "react-icons/fa";
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 interface Props<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
@@ -28,7 +21,7 @@ export default function TableHeader<TData, TValue>({
     return <div className={cn(className)}>{title}</div>;
   }
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
+    <div className={cn("flex items-center space-x-2 text-left ", className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button

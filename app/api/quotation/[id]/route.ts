@@ -86,6 +86,7 @@ export async function PUT(
     const body: unknown = await req.json();
     const parsedBody = QuotationRequestSchema.safeParse(body);
     if (!parsedBody.success) {
+      console.log(JSON.stringify(parsedBody.error));
       return NextResponse.json(
         { result: {}, message: "ไม่สามารถบันทึกข้อมูลได้" },
         { status: 422 }

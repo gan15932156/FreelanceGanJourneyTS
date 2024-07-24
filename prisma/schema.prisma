@@ -12,15 +12,20 @@ enum UserRole {
   USER
 }
 
-// QS1 = รอยืนยันใบเสนอราคา
-// QS2 = ยืนยันใบเสนอราคาแล้ว
-// QS3 = สำเร็จ
-// QS4 = ยกเลิก
-enum StatusStr {
-  QS1
-  QS2
-  QS3
-  QS4
+// Draft: ร่าง
+// Sent: ส่งแล้ว
+// Accepted: ยอมรับ
+// Rejected: ปฏิเสธ
+// Expired: หมดอายุ
+// Cancelled: ยกเลิก
+enum QuotationStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+  EDIT
 }
 model User {
   id            String          @id @default(cuid())
@@ -120,11 +125,13 @@ model Client{
 model Quotation {
   id            String          @id @default(cuid())
   qId           String          @unique
-  signDate      DateTime?
   isUseVAT      Boolean         @default(false)
   taxAmount     Int?
   note          String?
-  status        StatusStr       @default(QS1)
+  signDate      DateTime?
+  dueDate       Int
+  shipDate      DateTime?
+  status        QuotationStatus       @default(DRAFT)
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   user          User            @relation(fields: [userId],references: [id])
@@ -132,6 +139,7 @@ model Quotation {
   client        Client          @relation(fields: [clientId],references: [id])
   clientId      String
   quotationServices             QuotationService[]
+  qNotifyToken   QuotationNotifyToken?
 }
 
 model QuotationService {
@@ -145,4 +153,13 @@ model QuotationService {
   updatedAt     DateTime        @updatedAt
   quotation     Quotation       @relation(fields: [qId],references: [id])
   qId           String
+}
+model QuotationNotifyToken {
+  id            String          @id @default(cuid())
+  expiresAt     DateTime
+  quotation     Quotation       @relation(fields: [quotationId],references: [id])
+  quotationId   String          @unique
+  token         String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 }

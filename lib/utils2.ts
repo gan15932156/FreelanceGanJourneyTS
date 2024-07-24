@@ -1,4 +1,4 @@
-import { parseISO, format } from "date-fns";
+import { parseISO, format, FormatOptions } from "date-fns";
 import { th } from "date-fns/locale";
 import _ from "lodash";
 type AnyObject = Record<string, any>;
@@ -68,4 +68,22 @@ export const updateDataIfDifferent = <T extends AnyObject>(
     return { ...original, ...differences };
   }
   return original;
+};
+
+export const getAddDays = (date: Date, days: number): Date => {
+  const newDate = new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+  return newDate;
+};
+
+export const formatBuddhistDate = (
+  date: Date,
+  formatStr: string,
+  options?: FormatOptions
+): string => {
+  const buddhistYear = date.getFullYear() + 543;
+  const formattedDate = format(date, formatStr, options);
+  return formattedDate.replace(
+    date.getFullYear().toString(),
+    buddhistYear.toString()
+  );
 };

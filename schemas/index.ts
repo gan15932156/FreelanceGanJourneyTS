@@ -175,6 +175,11 @@ export const QuotationSchema = z.object({
   id: z.string().optional(),
   qId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
   signDate: z.date().optional(),
+  dueDate: z.coerce
+    .number()
+    .positive()
+    .min(1, { message: "กรุณากรอกวันยืนยันราคา" }),
+  shipDate: z.coerce.date().optional(),
   isUseVAT: z.boolean().default(false),
   taxAmount: z.coerce.number().default(0),
   note: z.string().optional(),
@@ -191,6 +196,11 @@ export const QuotationSchemaWithoutEdit = z.object({
   qId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
   clientId: z.string().min(1, { message: "กรุณากรอกรหัสใบเสนอราคา" }),
   signDate: z.date().optional(),
+  dueDate: z.coerce
+    .number()
+    .positive()
+    .min(1, { message: "กรุณากรอกวันยืนยันราคา" }),
+  shipDate: z.coerce.date().optional(),
   isUseVAT: z.boolean().default(false),
   taxAmount: z.coerce.number().default(0),
   note: z.string().optional(),
@@ -207,3 +217,16 @@ export const QuotationRequestSchema = z.object({
   delete: z.array(z.string()).optional(),
 });
 export type TQuotationRequestSchema = z.infer<typeof QuotationRequestSchema>;
+export const StatusEnumSchema = z.enum([
+  "DRAFT",
+  "SENT",
+  "ACCEPTED",
+  "REJECTED",
+  "EXPIRED",
+  "CANCELLED",
+  "EDIT",
+]);
+export type TStatusEnumSchema = z.infer<typeof StatusEnumSchema>;
+export const StatusEnumSchemaObj = z.object({
+  status: StatusEnumSchema,
+});

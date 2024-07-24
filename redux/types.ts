@@ -1,5 +1,6 @@
 import {
   QuotationServiceSchemaWithMode,
+  StatusEnumSchema,
   TQuotationServiceSchema,
   TUSerInfoSchema,
   TUserPaymentSchema,
@@ -57,6 +58,13 @@ export interface IServiceResponse {
     total: number;
   };
 }
+export interface IQuotationResponse {
+  message: string;
+  result: {
+    data: TQuotationDisplay[];
+    total: number;
+  };
+}
 export interface IQueryRequest {
   page: number;
   per_page: number;
@@ -97,9 +105,32 @@ export type TQuotationFullRelated = {
   note?: string;
   qId: string;
   signDate?: Date;
+  dueDate: number;
+  shipDate?: Date;
   status: "";
   taxAmount: number;
   userId: string;
   quotationServices: TQuotationServiceSchema[];
   user: TAllUserInfo;
+};
+export type TQuotationDisplay = {
+  updatedAt: Date;
+  createdAt: Date;
+  id: string;
+  isUseVAT: boolean;
+  note?: string;
+  qId: string;
+  signDate?: Date;
+  status: "";
+  taxAmount: number;
+  userId: string;
+  totalAmount: number;
+  quotationServices: TQuotationServiceSchema[];
+  client: {
+    name: string;
+  };
+};
+export type TQuotationUpdateStatusSchema = {
+  id: string;
+  status: z.infer<typeof StatusEnumSchema>;
 };

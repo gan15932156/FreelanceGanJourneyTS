@@ -1,8 +1,9 @@
 "use client";
+import { th } from "date-fns/locale";
 import { useGetUserInfoWithoutIdQuery } from "@/redux/apiSlice";
 import QuotationInfoItem from "./quotation-info-item";
 import { Badge } from "../ui/badge";
-import { Control } from "react-hook-form";
+import { Control, useWatch } from "react-hook-form";
 import * as z from "zod";
 import { QuotationSchema } from "@/schemas";
 import { IssetRequireData } from "./quotation-form";
@@ -15,8 +16,20 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { formatPhoneNumber, formatTaxId, formatThaiDate } from "@/lib/utils2";
+import {
+  formatBuddhistDate,
+  formatPhoneNumber,
+  formatTaxId,
+  formatThaiDate,
+  getAddDays,
+} from "@/lib/utils2";
 import { TAllUserInfo } from "@/redux/types";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
+import { addYears, format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "../ui/calendar";
 interface Props {
   editData?: TAllUserInfo;
   mode: "edit" | "add";
@@ -38,6 +51,7 @@ const UserInfoCard: React.FC<Props> = ({
     month: "long",
     day: "numeric",
   });
+  const dueDateWatch = useWatch({ control, name: "dueDate", defaultValue: 1 });
   const { data, isLoading, isError } = useGetUserInfoWithoutIdQuery(undefined, {
     skip: mode == "edit",
   });
@@ -123,7 +137,7 @@ const UserInfoCard: React.FC<Props> = ({
         />
         <QuotationInfoItem
           colSpan={2}
-          headingText="วันที่"
+          headingText="วันที่เอกสาร"
           content={formatedDate}
           gridGap={grid_gap}
         />
@@ -141,6 +155,89 @@ const UserInfoCard: React.FC<Props> = ({
           colSpan={2}
           headingText="อีเมล์"
           content={data.result.email}
+          gridGap={grid_gap}
+        />
+        <div className="p-1 grid grid-cols-subgrid col-span-2">
+          <FormField
+            control={control}
+            name="shipDate"
+            render={({ field }) => (
+              <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                <FormLabel>วันที่ส่งงาน</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          " pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(addYears(field.value, 543), "PPP", {
+                            locale: th,
+                          })
+                        ) : (
+                          <span>เลือกวันที่ส่งงาน</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                      locale={th}
+                      formatters={{
+                        formatCaption: (month) =>
+                          formatBuddhistDate(month, "LLLL yyyy", {
+                            locale: th,
+                          }),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="p-1 grid grid-cols-subgrid col-start-3 col-span-2">
+          <FormField
+            control={control}
+            name="dueDate"
+            render={({ field }) => (
+              <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+                <FormLabel>ยืนยันใบเสนอราคาภายใน(วัน)</FormLabel>
+                <FormControl>
+                  <Input
+                    className="disabled:opacity-100"
+                    {...field}
+                    placeholder="จำนวนวัน"
+                    type="number"
+                    min={1}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <QuotationInfoItem
+          colSpan={2}
+          headingText="วันที่ยืนยัน"
+          content={getAddDays(date, dueDateWatch).toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
           gridGap={grid_gap}
         />
       </>
@@ -212,7 +309,7 @@ const UserInfoCard: React.FC<Props> = ({
       />
       <QuotationInfoItem
         colSpan={2}
-        headingText="วันที่"
+        headingText="วันที่เอกสาร"
         content={
           editData?.createdAt != undefined
             ? formatThaiDate(editData.createdAt.toString())
@@ -234,6 +331,97 @@ const UserInfoCard: React.FC<Props> = ({
         colSpan={2}
         headingText="อีเมล์"
         content={editData?.email || ""}
+        gridGap={grid_gap}
+      />
+      <div className="p-1 grid grid-cols-subgrid col-span-2">
+        <FormField
+          control={control}
+          name="shipDate"
+          render={({ field }) => (
+            <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+              <FormLabel>วันที่ส่งงาน</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        " pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(addYears(field.value, 543), "PPP", {
+                          locale: th,
+                        })
+                      ) : (
+                        <span>เลือกวันที่ส่งงาน</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus={true}
+                    locale={th}
+                    formatters={{
+                      formatCaption: (month) =>
+                        formatBuddhistDate(month, "LLLL yyyy", {
+                          locale: th,
+                        }),
+                    }}
+                    defaultMonth={field.value}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      <div className="p-1 grid grid-cols-subgrid col-start-3 col-span-2">
+        <FormField
+          control={control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem className="space-y-0 grid grid-cols-subgrid col-span-2 items-center">
+              <FormLabel>ยืนยันใบเสนอราคาภายใน(วัน)</FormLabel>
+              <FormControl>
+                <Input
+                  className="disabled:opacity-100"
+                  {...field}
+                  placeholder="จำนวนวัน"
+                  type="number"
+                  min={1}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      <QuotationInfoItem
+        colSpan={2}
+        headingText="วันที่ยืนยัน"
+        content={
+          editData?.createdAt != undefined
+            ? getAddDays(
+                new Date(editData?.createdAt),
+                dueDateWatch
+              ).toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : ""
+        }
         gridGap={grid_gap}
       />
     </>
