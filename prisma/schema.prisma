@@ -159,7 +159,7 @@ model QuotationNotifyToken {
   expiresAt     DateTime
   quotation     Quotation       @relation(fields: [quotationId],references: [id])
   quotationId   String          @unique
-  token         String
+  token         String          @unique
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }

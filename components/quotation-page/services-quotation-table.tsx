@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "../ui/table";
 import { X } from "lucide-react";
-import { getThaiCurrentFormat } from "@/lib/utils2";
+import { getThaiCurrencyCall, getThaiCurrentFormat } from "@/lib/utils2";
 import {
   Select,
   SelectContent,
@@ -147,7 +147,9 @@ const TotalFooter: React.FC<TotalFooterProps> = ({
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell colSpan={2}></TableCell>
+        <TableCell colSpan={2} className="font-semibold text-right max-w-2">
+          {getThaiCurrencyCall(netTotal)}
+        </TableCell>
         <TableCell colSpan={2} className="text-left font-bold py-1">
           รวมทั้งสิ้น
         </TableCell>

@@ -230,3 +230,6 @@ export type TStatusEnumSchema = z.infer<typeof StatusEnumSchema>;
 export const StatusEnumSchemaObj = z.object({
   status: StatusEnumSchema,
 });
+export const QuotationVerifyTokenSchema = z.object({
+  token: z.string(),
+});

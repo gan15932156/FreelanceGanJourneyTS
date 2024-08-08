@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   try {
     const body: unknown = await req.json();
     const parsedBody = QuotationSchemaWithoutEdit.safeParse(body);
-    console.log(JSON.stringify(parsedBody.error));
+    // console.log(JSON.stringify(parsedBody.error));
     if (!parsedBody.success) {
       return NextResponse.json(
         { result: {}, message: "ไม่สามารถบันทึกข้อมูลได้" },

@@ -18,8 +18,10 @@ import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 import {
   useCreateQuotationMutation,
+  useCreateQuotationTokenMutation,
   useGetGeneratedQidQuery,
   useGetQuotationQuery,
+  useGetQuotationTokenQuery,
   useUpdateQuotationMutation,
 } from "@/redux/apiSlice";
 import ClientInfoSelectionbox from "./clientInfo-selectionbox";
@@ -28,7 +30,7 @@ import { Badge } from "../ui/badge";
 import QuotationDesc from "./quotation-desc";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { isEqual } from "date-fns";
-import { Link2, Mail, Printer } from "lucide-react";
+import { Clipboard, Link2, Loader2, Mail, Printer } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +66,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
 }: QuotationFormProps) => {
   const { data: quotationData, isLoading: quotationLoading } =
     useGetQuotationQuery(id ?? skipToken);
+  const { data: quotationToken, isLoading: quotationTokenLoading } =
+    useGetQuotationTokenQuery(id ?? skipToken);
   const {
     data: qidData,
     isLoading: qidLoading,
@@ -75,6 +79,8 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
     useCreateQuotationMutation();
   const [useUPdateQuotation, { isLoading: updateLoading }] =
     useUpdateQuotationMutation();
+  const [useCreateToken, { isLoading: createTokenLoading }] =
+    useCreateQuotationTokenMutation();
   const router = useRouter();
   const form = useForm<z.infer<typeof QuotationSchema>>({
     mode: "onBlur",
@@ -90,6 +96,61 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
   });
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const onGetLinkClick = () => {
+    if (quotationToken?.result != "") {
+      handleCopyClick(
+        quotationToken?.result
+          ? `${process.env.NEXT_PUBLIC_BASEURL}/view-quotation-doc/${quotationToken?.result}`
+          : ""
+      );
+    } else {
+      if (id != undefined) {
+        startTransition(() => {
+          useCreateToken(id).then((data) => {
+            if (data.data?.result != "") {
+              handleCopyClick(
+                data.data?.result
+                  ? `${process.env.NEXT_PUBLIC_BASEURL}/view-quotation-doc/${data.data?.result}`
+                  : ""
+              );
+            } else {
+              toast({
+                variant: "destructive",
+                title: data.data?.message || "ไม่สามารถบันทึกข้อมูลได้",
+              });
+            }
+          });
+        });
+      }
+    }
+  };
+  const handleCopyLinkClick = () => {
+    handleCopyClick(
+      quotationToken?.result
+        ? `${process.env.NEXT_PUBLIC_BASEURL}/view-quotation-doc/${quotationToken?.result}`
+        : ""
+    );
+  };
+  const handleCopyClick = async (text: string) => {
+    try {
+      if (text != "") {
+        await navigator.clipboard.writeText(text);
+        toast({
+          title: "คัดลอกสำเร็จ",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "ไม่สามารถคัดลอกได้",
+        });
+      }
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "ไม่สามารถคัดลอกได้",
+      });
+    }
+  };
   const onSubmit: SubmitHandler<z.infer<typeof QuotationSchema>> = async (
     data
   ) => {
@@ -138,7 +199,9 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
       } else {
         // edit
         if (
-          quotationData?.result.status.toString() == StatusEnumSchema.enum.DRAFT
+          quotationData?.result.status.toString() ==
+            StatusEnumSchema.enum.DRAFT ||
+          quotationData?.result.status.toString() == StatusEnumSchema.enum.EDIT
         ) {
           let updateData = {};
           if (!_.isEqual(quotationData?.result.isUseVAT, data.isUseVAT)) {
@@ -171,15 +234,23 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               dueDate: data.dueDate,
             };
           }
-          if (
-            data.shipDate != undefined &&
-            quotationData.result.shipDate != undefined &&
-            !isEqual(quotationData?.result.shipDate, data.shipDate)
-          ) {
-            updateData = {
-              ...updateData,
-              shipDate: data.shipDate,
-            };
+          if (quotationData.result.shipDate == undefined) {
+            if (data.shipDate != undefined) {
+              updateData = {
+                ...updateData,
+                shipDate: data.shipDate,
+              };
+            }
+          } else {
+            if (
+              data.shipDate != undefined &&
+              !isEqual(quotationData?.result.shipDate, data.shipDate)
+            ) {
+              updateData = {
+                ...updateData,
+                shipDate: data.shipDate,
+              };
+            }
           }
           let updateService: z.infer<typeof QuotationServiceSchemaWithMode>[] =
             [];
@@ -249,6 +320,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               });
             });
           }
+        } else {
+          toast({
+            variant: "destructive",
+            title:
+              "ใบเสนอราคาไม่ได้อยู่ในสถานะร่างหรือแก้ไข ไม่สามารถแก้ไขเอกสารได้",
+          });
         }
       }
     } else {
@@ -297,12 +374,20 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
       form.reset(resetData);
     }
   }, [quotationData]);
-  if (mode == "edit" && quotationLoading) return <div>Loading...</div>;
+  if (mode == "edit" && (quotationLoading || quotationTokenLoading))
+    return <div>Loading...</div>;
   if (
     mode == "edit" &&
     !quotationLoading &&
     quotationData?.result &&
     quotationData?.result.id == undefined
+  )
+    return <div>ไม่พบข้อมูล</div>;
+  if (
+    mode == "edit" &&
+    !quotationTokenLoading &&
+    quotationToken?.result &&
+    quotationToken.result == ""
   )
     return <div>ไม่พบข้อมูล</div>;
   return (
@@ -322,10 +407,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             </Button>
           )}
         {mode == "edit" &&
-          quotationData?.result.status.toString() ==
-            StatusEnumSchema.enum.DRAFT && (
+          (quotationData?.result.status.toString() ==
+            StatusEnumSchema.enum.DRAFT ||
+            quotationData?.result.status.toString() ==
+              StatusEnumSchema.enum.SENT) && (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild disabled={createTokenLoading}>
                 <Button size={"sm"} variant="outline">
                   <Mail className="mr-2 h-4 w-4" />
                   ส่ง
@@ -339,10 +426,23 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
                     <Mail className="mr-2 h-4 w-4" />
                     <span>อีเมล์</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link2 className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem onClick={onGetLinkClick}>
+                    {createTokenLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Link2 className="mr-2 h-4 w-4" />
+                    )}
                     <span>ลิงค์</span>
                   </DropdownMenuItem>
+                  {quotationToken?.result != "" && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleCopyLinkClick}>
+                        <Clipboard className="mr-2 h-4 w-4" />
+                        <span>คัดลอกลิงค์</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -408,9 +508,15 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
             setIssetData={setIssetData}
             control={form.control}
           />
+
           <div className="col-span-4 flex flex-row gap-2 mt-4">
             <Button
-              disabled={createQuotationLoading || isPending || updateLoading}
+              disabled={
+                createQuotationLoading ||
+                isPending ||
+                updateLoading ||
+                createTokenLoading
+              }
               className="ml-auto"
               onClick={() => router.back()}
               variant={"outline"}
@@ -419,7 +525,12 @@ const QuotationForm: React.FC<QuotationFormProps> = ({
               ย้อนหลับ
             </Button>
             <Button
-              disabled={createQuotationLoading || isPending || updateLoading}
+              disabled={
+                createQuotationLoading ||
+                isPending ||
+                updateLoading ||
+                createTokenLoading
+              }
               type="submit"
             >
               บันทึกข้อมูล

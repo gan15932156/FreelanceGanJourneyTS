@@ -4,13 +4,16 @@ import {
   IGetResponse,
   IQueryRequest,
   IQuotationResponse,
+  IQuotationTokenResponse,
   IService,
   IServiceResponse,
   IUserInfoResponse,
   IUserInfoUpdate,
   IUserPaymentResponse,
   IUserUpdateResponse,
+  IVerifyQuotationTokenResponse,
   TQuotationFullRelated,
+  TQuotationTokenWithDataSchema,
   TQuotationUpdateStatusSchema,
 } from "./types";
 import {
@@ -24,7 +27,15 @@ const BASEURL = "/api";
 export const apiSlice = createApi({
   reducerPath: "apiSlice",
   baseQuery: fetchBaseQuery({ baseUrl: BASEURL }),
-  tagTypes: ["userInfo", "services", "clients", "userPayment", "quotations"],
+  tagTypes: [
+    "userInfo",
+    "services",
+    "clients",
+    "userPayment",
+    "quotations",
+    "quotationToken",
+    "quotationTokenWithData",
+  ],
   endpoints: (builder) => ({
     getUserInfo: builder.query<IUserInfoResponse, string>({
       query(id) {
@@ -200,6 +211,36 @@ export const apiSlice = createApi({
             ]
           : [{ type: "quotations", id: "PARTIAL-LIST" }],
     }),
+    getQuotationToken: builder.query<IQuotationTokenResponse, string>({
+      query(id) {
+        return {
+          url: `/quotation/${id}/getToken`,
+          method: "GET",
+        };
+      },
+      providesTags: ["quotationToken"],
+    }),
+    getQuotationTokenWithData: builder.query<
+      IGetResponse<TQuotationTokenWithDataSchema>,
+      string
+    >({
+      query(id) {
+        return {
+          url: `/linkToken/${id}/quotation`,
+          method: "GET",
+        };
+      },
+      // providesTags: ["quotationTokenWithData"],
+    }),
+    verifyQuotationToken: builder.query<IVerifyQuotationTokenResponse, string>({
+      query(token) {
+        return {
+          url: `/quotation/verifyToken`,
+          method: "POST",
+          body: { token },
+        };
+      },
+    }),
     updateUserInfo: builder.mutation<IUserUpdateResponse, IUserInfoUpdate>({
       query(body) {
         return {
@@ -243,6 +284,15 @@ export const apiSlice = createApi({
         return { url: `/quotation`, method: "POST", body: body };
       },
       invalidatesTags: ["quotations"],
+    }),
+    createQuotationToken: builder.mutation<IQuotationTokenResponse, string>({
+      query(id) {
+        return {
+          url: `/quotation/${id}/generateLinkToken`,
+          method: "POST",
+        };
+      },
+      invalidatesTags: ["quotations", "quotationToken"],
     }),
     updateService: builder.mutation<IUserUpdateResponse, IService>({
       query({ id, ...rest }) {
@@ -296,11 +346,15 @@ export const {
   useGetClientQuery,
   useGetQuotationQuery,
   useGetQuotationsQuery,
+  useGetQuotationTokenQuery,
+  useGetQuotationTokenWithDataQuery,
+  useVerifyQuotationTokenQuery,
   useUpdateUserInfoMutation,
   useUpdateUserPaymentInfoMutation,
   useCreateClientMutation,
   useCreateServiceMutation,
   useCreateQuotationMutation,
+  useCreateQuotationTokenMutation,
   useUpdateServiceMutation,
   useUpdateClientMutation,
   useUpdateQuotationMutation,

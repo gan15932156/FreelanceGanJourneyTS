@@ -35,6 +35,14 @@ export interface IGetResponse<TData> {
   result: TData;
   message: string;
 }
+export interface IQuotationTokenResponse {
+  result: string;
+  message: string;
+}
+export interface IVerifyQuotationTokenResponse {
+  result: boolean;
+  message: string;
+}
 export interface IService {
   id?: string;
   name: string;
@@ -133,4 +141,10 @@ export type TQuotationDisplay = {
 export type TQuotationUpdateStatusSchema = {
   id: string;
   status: z.infer<typeof StatusEnumSchema>;
+};
+export type TQuotationTokenWithDataSchema = {
+  id: string;
+  token: string;
+  expiresAt: Date;
+  quotation: TQuotationFullRelated;
 };
